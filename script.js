@@ -1,31 +1,18 @@
 /***** 설정 *****/
 var API = 'https://script.google.com/macros/s/AKfycbz6RgYyT4s7TgFsGnCKgnM87VxyyhSF-3-ibf6Fwa9Pfs-hvctXc3w-RzmSK3ad9aHV/exec';
 var COOLDOWN_MS       = 500;
-var NEXT_DELAY_MS     = 2500;
-var USE_FRONT_DEFAULT = true;
-var MIRROR_DISPLAY    = true;
-var IDEAL_WIDTH = 1280, IDEAL_HEIGHT = 720;
+var NEXT_DELAY_MS     = 3000;
+var USE_FRONT_DEFAULT = false;   // 후면 카메라
+var MIRROR_DISPLAY    = false;
+var IDEAL_WIDTH = 1920, IDEAL_HEIGHT = 1080;
 
 /***** 인원 선택 *****/
 var selectedCount = 1;
 
-function getDeviceId(){
-  try{
-    var id = localStorage.getItem('deviceId');
-    if(!id){ id = 'PAD-' + Math.random().toString(36).slice(2,8).toUpperCase(); localStorage.setItem('deviceId', id); }
-    return id;
-  }catch(_){ return 'PAD-UNKNOWN'; }
-}
-
 function updateCountUI(){
   document.querySelectorAll('.count-btn').forEach(function(btn){
-    var n = parseInt(btn.dataset.count, 10);
-    btn.classList.toggle('active', n === 5 ? selectedCount >= 5 : n === selectedCount);
+    btn.classList.toggle('selected', parseInt(btn.dataset.count,10) === selectedCount);
   });
-  var moreDiv = document.getElementById('moreCount');
-  var moreNum = document.getElementById('moreNum');
-  if(moreDiv) moreDiv.classList.toggle('hidden', selectedCount < 5);
-  if(moreNum) moreNum.textContent = selectedCount;
 }
 
 (function(){
@@ -35,39 +22,33 @@ function updateCountUI(){
       updateCountUI();
     });
   });
-  var bm = document.getElementById('btnMinus');
-  var bp = document.getElementById('btnPlus');
-  if(bm) bm.addEventListener('click', function(){ if(selectedCount > 5){ selectedCount--; updateCountUI(); } });
-  if(bp) bp.addEventListener('click', function(){ if(selectedCount < 10){ selectedCount++; updateCountUI(); } });
 })();
+
+/***** 화면 꺼짐 방지 *****/
+var _wakeLock = null;
+async function requestWakeLock(){
+  try{ if('wakeLock' in navigator) _wakeLock = await navigator.wakeLock.request('screen'); }catch(_){}
+}
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible') requestWakeLock();
+});
 
 /***** 요소 *****/
 function byId(id){ return document.getElementById(id); }
 var video=byId('camera'), startBtn=byId('startBtn'), statusMsg=byId('statusMsg');
-var camWrap=document.querySelector('.camera-wrapper');
 var lastScanAt=0, blockUntil=0, cooldownTimer=null;
 
 /***** 오디오 *****/
 var audioCtx=null;
 function initAudio(){ try{ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(_){} }
-function beep(f,ms,t,v){ if(!audioCtx) return; var o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=t||'square'; o.frequency.value=f||1000; g.gain.value=(v!=null?v:0.28); o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(function(){try{o.stop();}catch(_){}},ms||140); }
+function beep(f,ms,t,v){ if(!audioCtx) return; var o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=t||'sine'; o.frequency.value=f||1000; g.gain.value=(v!=null?v:0.28); o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(function(){try{o.stop();}catch(_){}},ms||140); }
 function successChime(){ beep(1100,120,'sine',0.28); setTimeout(function(){beep(1500,140,'sine',0.28);},80); }
 
 /***** 상태표시 *****/
 function setStatus(state, text, spin){
-  statusMsg.innerHTML = spin ? '<span class="spinner" aria-hidden="true"></span>'+text : text;
-  statusMsg.className = '';
-  if(camWrap) camWrap.classList.remove('cam-success','cam-error','cam-check','cam-wait');
-  document.body.classList.remove('bg-success','bg-error','bg-checking','bg-wait');
-  if(state==='ready')    statusMsg.classList.add('state-ready');
-  if(state==='checking'){statusMsg.classList.add('state-checking'); camWrap&&camWrap.classList.add('cam-check'); document.body.classList.add('bg-checking');}
-  if(state==='success') {statusMsg.classList.add('state-success');  camWrap&&camWrap.classList.add('cam-success'); document.body.classList.add('bg-success');}
-  if(state==='error')   {statusMsg.classList.add('state-error');    camWrap&&camWrap.classList.add('cam-error');  document.body.classList.add('bg-error');}
-  if(state==='wait')    {statusMsg.classList.add('state-wait');     camWrap&&camWrap.classList.add('cam-wait');   document.body.classList.add('bg-wait');}
+  statusMsg.innerHTML = spin ? '<span class="spinner"></span>'+text : text;
+  statusMsg.className = 'state-'+state;
 }
-
-/***** 비율 보정 *****/
-function applyActualAspectRatio(){ var vw=video.videoWidth||0,vh=video.videoHeight||0; if(vw&&vh&&camWrap) camWrap.style.setProperty('--ratio',(vw+' / '+vh)); }
 
 /***** gUM 폴백 *****/
 function gUM(c){
@@ -78,7 +59,13 @@ function gUM(c){
 }
 
 /***** 시작 *****/
-function startAll(){ if(startBtn) startBtn.disabled=true; setStatus('checking','카메라 권한 요청 중...',true); initAudio(); initCamera(); }
+function startAll(){
+  if(startBtn) startBtn.disabled=true;
+  setStatus('checking','카메라 권한 요청 중...',true);
+  initAudio();
+  requestWakeLock();
+  initCamera();
+}
 window.startAll = startAll;
 if(startBtn){
   startBtn.addEventListener('click', startAll, {passive:true});
@@ -91,8 +78,8 @@ function initCamera(){
   if(!(navigator.mediaDevices||navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia)){
     setStatus('error','이 기기는 카메라를 지원하지 않습니다.'); return;
   }
-  var front={video:{facingMode:'user',width:{ideal:IDEAL_WIDTH},height:{ideal:IDEAL_HEIGHT}},audio:false};
   var back ={video:{facingMode:'environment',width:{ideal:IDEAL_WIDTH},height:{ideal:IDEAL_HEIGHT}},audio:false};
+  var front={video:{facingMode:'user',    width:{ideal:IDEAL_WIDTH},height:{ideal:IDEAL_HEIGHT}},audio:false};
   var low  ={video:{width:{ideal:640},height:{ideal:480}},audio:false};
   var first = USE_FRONT_DEFAULT ? front : back;
   gUM(first)
@@ -100,12 +87,9 @@ function initCamera(){
     .catch(function(){ return gUM(low); })
     .then(function(stream){
       video.srcObject=stream;
-      video.onloadedmetadata=applyActualAspectRatio;
-      video.onresize=applyActualAspectRatio;
       video.play().catch(function(){ setTimeout(function(){ video.play().catch(function(){}); },200); });
       if(MIRROR_DISPLAY) video.style.transform='scaleX(-1)';
-      setTimeout(applyActualAspectRatio,120);
-      setStatus('ready','입장 인원을 선택한 뒤 QR코드를 비춰주세요');
+      setStatus('ready','QR코드를 비춰주세요');
       if(startBtn) startBtn.classList.add('hidden');
       startScanning();
     }, function(e){
@@ -116,13 +100,13 @@ function initCamera(){
     });
 }
 
-/***** 스캔 — ROI 0.72 *****/
+/***** 스캔 — ROI 3단계 순환 *****/
 var roiCanvas=document.createElement('canvas'), roiCtx=roiCanvas.getContext('2d',{willReadFrequently:true});
-var ROI_SCALE = 0.72;
+var ROI_SCALES=[0.45, 0.65, 0.80], roiIdx=0;
 
-function drawFrame(){
+function drawFrame(scale){
   var w=video.videoWidth||640, h=video.videoHeight||480; if(!w||!h) return null;
-  var side=Math.floor(Math.min(w,h)*ROI_SCALE), x=Math.floor((w-side)/2), y=Math.floor((h-side)/2);
+  var side=Math.floor(Math.min(w,h)*scale), x=Math.floor((w-side)/2), y=Math.floor((h-side)/2);
   roiCanvas.width=side; roiCanvas.height=side;
   roiCtx.drawImage(video,x,y,side,side,0,0,side,side);
   return {side:side};
@@ -133,7 +117,8 @@ function startScanning(){
   (function loop(){
     var now=Date.now();
     if(now >= blockUntil){
-      var roi=drawFrame();
+      var scale=ROI_SCALES[roiIdx % ROI_SCALES.length]; roiIdx++;
+      var roi=drawFrame(scale);
       if(roi){
         if(detector){
           detector.detect(roiCanvas).then(function(codes){
@@ -141,7 +126,7 @@ function startScanning(){
           }).catch(function(){});
         } else if(window.jsQR){
           var img=roiCtx.getImageData(0,0,roi.side,roi.side);
-          var qr=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+          var qr=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
           if(qr&&qr.data) maybeHandleDecoded(qr.data.trim());
         }
       }
@@ -157,13 +142,8 @@ function extractToken(text){
 }
 
 /***** 서버 전송 *****/
-function sendAsync(token){
-  var payload={
-    token:    token,
-    count:    selectedCount,
-    deviceId: getDeviceId(),
-    ua:       (navigator.userAgent||'').slice(0,200)
-  };
+function sendAsync(token, count){
+  var payload={ token:token, count:count, ua:(navigator.userAgent||'').slice(0,200) };
   if(navigator.sendBeacon){
     var ok=navigator.sendBeacon(API, new Blob([JSON.stringify(payload)],{type:'text/plain;charset=UTF-8'}));
     if(ok) return;
@@ -171,7 +151,7 @@ function sendAsync(token){
   try{ fetch(API,{method:'POST',keepalive:true,mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }catch(_){}
 }
 
-/***** 성공 후 2.5초 유지 → 자동 초기화 *****/
+/***** 성공 후 3초 유지 → 자동 초기화 *****/
 function startCooldown(ms){
   blockUntil = Date.now() + ms;
   if(cooldownTimer){ clearTimeout(cooldownTimer); cooldownTimer=null; }
@@ -179,7 +159,7 @@ function startCooldown(ms){
     cooldownTimer = null;
     selectedCount = 1;
     updateCountUI();
-    setStatus('ready','입장 인원을 선택한 뒤 QR코드를 비춰주세요');
+    setStatus('ready','QR코드를 비춰주세요');
   }, ms);
 }
 
@@ -190,12 +170,10 @@ function maybeHandleDecoded(text){
   var token=extractToken(text); if(!token) return;
 
   lastScanAt = now;
-  setStatus('success',
-    '입장 확인 완료<span class="count-sub">'+selectedCount+'명 입장 처리되었습니다</span>',
-    false
-  );
+  var count = selectedCount;
+  setStatus('success', '✅ '+count+'명 입장 완료!', false);
   successChime();
   navigator.vibrate && navigator.vibrate(40);
-  sendAsync(token);
+  sendAsync(token, count);
   startCooldown(NEXT_DELAY_MS);
 }
