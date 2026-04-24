@@ -50,8 +50,8 @@ var lastScanAt=0, blockUntil=0, cooldownTimer=null;
 /***** 오디오 *****/
 var audioCtx=null;
 function initAudio(){ try{ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(_){} }
-function beep(f,ms,t,v){ if(!audioCtx) return; var o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=t||'square'; o.frequency.value=f||1000; g.gain.value=(v!=null?v:0.34); o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(function(){try{o.stop();}catch(_){}},ms||140); }
-function successChime(){ beep(1100,140,'square',0.34); setTimeout(function(){beep(1500,160,'square',0.34);},90); }
+function beep(f,ms,t,v){ if(!audioCtx) return; var o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=t||'square'; o.frequency.value=f||1000; g.gain.value=(v!=null?v:0.28); o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(function(){try{o.stop();}catch(_){}},ms||140); }
+function successChime(){ beep(1100,120,'sine',0.28); setTimeout(function(){beep(1500,140,'sine',0.28);},80); }
 
 /***** 상태표시 *****/
 function setStatus(state, text, spin){
@@ -89,7 +89,7 @@ if(startBtn){
 function initCamera(){
   video.muted=true; video.setAttribute('muted',''); video.setAttribute('playsinline','');
   if(!(navigator.mediaDevices||navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia)){
-    setStatus('error','이 기기는 카메라 API를 지원하지 않습니다.'); return;
+    setStatus('error','이 기기는 카메라를 지원하지 않습니다.'); return;
   }
   var front={video:{facingMode:'user',width:{ideal:IDEAL_WIDTH},height:{ideal:IDEAL_HEIGHT}},audio:false};
   var back ={video:{facingMode:'environment',width:{ideal:IDEAL_WIDTH},height:{ideal:IDEAL_HEIGHT}},audio:false};
@@ -111,12 +111,12 @@ function initCamera(){
     }, function(e){
       var msg='카메라를 사용할 수 없습니다.';
       if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError')) msg='카메라 권한이 거부되었습니다.';
-      setStatus('error','❌ '+msg);
+      setStatus('error', msg);
       if(startBtn) startBtn.disabled=false;
     });
 }
 
-/***** 스캔 — ROI 확장(0.62→0.72) *****/
+/***** 스캔 — ROI 0.72 *****/
 var roiCanvas=document.createElement('canvas'), roiCtx=roiCanvas.getContext('2d',{willReadFrequently:true});
 var ROI_SCALE = 0.72;
 
@@ -156,7 +156,7 @@ function extractToken(text){
   return text;
 }
 
-/***** 서버 전송 — count + deviceId 포함 *****/
+/***** 서버 전송 *****/
 function sendAsync(token){
   var payload={
     token:    token,
@@ -191,7 +191,7 @@ function maybeHandleDecoded(text){
 
   lastScanAt = now;
   setStatus('success',
-    '✅ 입장 확인 완료!<span class="count-sub">'+selectedCount+'명 입장 처리되었습니다</span>',
+    '입장 확인 완료<span class="count-sub">'+selectedCount+'명 입장 처리되었습니다</span>',
     false
   );
   successChime();
