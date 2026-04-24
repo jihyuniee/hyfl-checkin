@@ -4,21 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR 입장 확인 — 셀프 체크인</title>
-  <link rel="stylesheet" href="style.css?v=kiosk-2" />
+  <link rel="stylesheet" href="style.css?v=kiosk-3" />
 </head>
 <body>
   <div class="container">
 
-    <!-- 헤더 -->
     <div class="header-area">
-      <div class="header-icon">🏫</div>
       <h1>한영외국어고등학교</h1>
       <h2>입학설명회</h2>
     </div>
 
-    <!-- 인원 선택 -->
     <div class="count-section">
-      <p class="count-label">몇 명이 함께 입장하시나요?</p>
+      <p class="count-label">입장 총 인원수</p>
       <div class="count-selector">
         <button class="count-btn active" data-count="1" type="button">1명</button>
         <button class="count-btn" data-count="2" type="button">2명</button>
@@ -33,12 +30,10 @@
       </div>
     </div>
 
-    <!-- 상태 표시 -->
     <div id="statusBar">
       <div id="statusMsg" class="state-ready">입장 인원을 선택한 뒤 QR코드를 비춰주세요</div>
     </div>
 
-    <!-- 카메라 -->
     <div class="camera-wrapper">
       <video id="camera" autoplay playsinline muted></video>
       <div class="overlay"></div>
@@ -49,23 +44,21 @@
       </div>
     </div>
 
-    <!-- 스캔 안내 -->
     <div class="scan-guide">
-      <span>📋 QR코드를 네모 안에 크게 맞춰주세요</span>
-      <span>📏 화면에서 20~30cm 떨어져 주세요</span>
-      <span>⏳ 초점이 맞을 때까지 잠시 기다려 주세요</span>
+      <span>QR코드를 네모 안에 크게 맞춰주세요</span>
+      <span>화면에서 20~30cm 떨어져 주세요</span>
+      <span>초점이 맞을 때까지 잠시 기다려 주세요</span>
     </div>
 
-    <button id="startBtn" type="button" onclick="window.__start()">📷 카메라 시작</button>
+    <button id="startBtn" type="button" onclick="window.__start()">카메라 시작</button>
   </div>
 
-  <!-- 비상 스타터 — script.js 로드 실패 시 최소 카메라만 -->
   <script>
     window.__start = function(){
       try{
         if(window.startAll){ window.startAll(); return; }
         var v=document.getElementById('camera'), s=document.getElementById('statusMsg');
-        s.textContent='🔐 카메라 권한 요청 중...';
+        s.textContent='카메라 권한을 요청하는 중입니다...';
         var c={video:{facingMode:'user'},audio:false};
         var gum=(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
           ? navigator.mediaDevices.getUserMedia(c)
@@ -78,15 +71,13 @@
           v.style.transform='scaleX(-1)';
           s.textContent='입장 인원을 선택한 뒤 QR코드를 비춰주세요';
         }).catch(function(){
-          s.textContent='❌ 카메라 접근 불가. Safari 설정을 확인해 주세요.';
+          s.textContent='카메라 접근이 불가합니다. Safari 설정을 확인해 주세요.';
         });
       }catch(e){}
     };
   </script>
 
-  <!-- 폴백 디코더 -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
-  <!-- 메인 스크립트 -->
-  <script src="script.js?v=kiosk-1" defer></script>
+  <script src="script.js?v=kiosk-2" defer></script>
 </body>
 </html>
