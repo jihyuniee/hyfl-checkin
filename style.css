@@ -1,75 +1,111 @@
-/* style.css — Clean kiosk UI */
-*{box-sizing:border-box}
+/* style.css — Landscape kiosk v4 */
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden}
 body{
-  margin:0;padding:0;
+  width:100%;height:100dvh;
+  overflow:hidden;
+  display:flex;flex-direction:row;
   font-family:-apple-system,'Apple SD Gothic Neo',BlinkMacSystemFont,'Segoe UI',sans-serif;
-  color:#111;background:#f4f4f4;
-  transition:background-color .2s ease;
+  background:#0b1a2a;color:#fff;
 }
-.container{max-width:700px;margin:0 auto;padding-bottom:40px}
 
-/* 헤더 */
-.header-area{
-  background:#fff;padding:28px 24px 20px;
-  border-bottom:1px solid #e8e8e8;
-  text-align:center;margin-bottom:8px;
-  position:relative;
+/* 왼쪽 패널 */
+.left-panel{
+  width:45%;height:100%;
+  background:#0b1a2a;
+  padding:40px;
+  display:flex;flex-direction:column;
+  justify-content:center;gap:32px;
+  flex-shrink:0;
 }
-.header-area::before{
-  content:'';position:absolute;top:0;left:0;right:0;
-  height:3px;background:#111;
-}
-h1{margin:0 0 5px;font-weight:700;font-size:clamp(18px,3vw,22px);color:#111;letter-spacing:-.3px}
-h2{margin:0;font-size:clamp(12px,1.8vw,14px);color:#aaa;font-weight:400;letter-spacing:.5px}
 
-/* 인원 선택 */
-.count-section{
-  background:#fff;padding:22px 20px 20px;
-  border-bottom:1px solid #e8e8e8;
-  margin-bottom:8px;text-align:center;
+/* 학교명 */
+.school-name{font-size:18px;color:rgba(255,255,255,0.55);font-weight:500;margin-bottom:6px}
+.event-name {font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:.8px;text-transform:uppercase}
+
+/* 입장 총 인원수 */
+.count-title{
+  font-size:clamp(28px,4vw,52px);
+  font-weight:900;color:#fff;line-height:1.15;
 }
-.count-label{
-  margin:0 0 14px;
-  font-size:clamp(13px,1.8vw,15px);font-weight:600;color:#333;
-}
-.count-selector{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+
+/* 인원수 버튼 */
+#countSelector{display:flex;gap:12px;flex-wrap:wrap}
 .count-btn{
-  min-width:68px;padding:13px 14px;
-  font-size:clamp(15px,2vw,17px);font-weight:600;line-height:1.2;
-  border:1.5px solid #ddd;border-radius:8px;
-  background:#fafafa;color:#555;cursor:pointer;
-  transition:border-color .1s,background .1s,color .1s,transform .08s;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-}
-.count-btn:active{transform:scale(.96)}
-.count-btn.active{background:#111;border-color:#111;color:#fff}
-.count-plus{display:block;font-size:.58em;font-weight:500;margin-top:2px;opacity:.75}
-.more-count{
-  margin-top:14px;display:flex;align-items:center;justify-content:center;
-  gap:20px;font-size:clamp(20px,3vw,26px);font-weight:700;color:#111;
-}
-.adj-btn{
-  width:42px;height:42px;border-radius:50%;
-  border:1.5px solid #ccc;background:#fff;color:#333;
-  font-size:22px;line-height:1;cursor:pointer;
+  width:80px;height:80px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.10);
+  border:2px solid rgba(255,255,255,0.22);
+  color:#fff;
+  font-size:28px;font-weight:900;
+  cursor:pointer;
+  transition:all 0.15s;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   display:flex;align-items:center;justify-content:center;
-  transition:background .1s,color .1s,border-color .1s;
 }
-.adj-btn:active{background:#111;color:#fff;border-color:#111}
+.count-btn:active{transform:scale(0.93);opacity:.8}
+.count-btn.selected{
+  background:#2563eb;
+  border:2px solid #60a5fa;
+  transform:scale(1.15);
+  box-shadow:0 0 0 4px rgba(37,99,235,0.40);
+}
 
-/* 상태바 */
-#statusBar{padding:0 16px 8px}
-#statusMsg{
-  display:block;width:100%;padding:15px 20px;border-radius:10px;
-  font-weight:700;font-size:clamp(15px,2.4vw,20px);
-  letter-spacing:-.2px;transition:all .2s ease;text-align:center;
+/* 안내 문구 */
+.guide-text{font-size:18px;color:rgba(255,255,255,0.60);line-height:1.7}
+
+/* 시작 버튼 */
+#startBtn{
+  padding:14px 36px;font-size:16px;font-weight:600;
+  border:0;border-radius:10px;
+  background:#2563eb;color:#fff;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  align-self:flex-start;transition:opacity .12s;
 }
-.state-ready{background:#fff;color:#555;border:1.5px solid #e5e5e5}
-.state-checking{background:#1a1a1a;color:#fff}
-.state-success{background:#1a7a4a;color:#fff}
-.state-wait{background:#e8a020;color:#fff}
-.state-error{background:#d93025;color:#fff}
+#startBtn:active{opacity:.75}
+.hidden{display:none}
+
+/* 오른쪽 패널 */
+.right-panel{
+  width:55%;height:100%;
+  background:#000;
+  position:relative;overflow:hidden;
+  flex-shrink:0;
+}
+#camera{width:100%;height:100%;object-fit:cover;display:block}
+
+/* QR 가이드 꺾쇠 — 초록 */
+.guide{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:2;
+}
+.guide .box{
+  --guide-size:min(60%,500px);
+  --corner-color:#22c55e;--corner-thick:5px;
+  position:relative;width:var(--guide-size);aspect-ratio:1/1;border-radius:12px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.38);
+}
+.guide .box i{position:absolute;width:52px;height:52px;border-radius:8px}
+.guide .box i.tl{top:-2px;left:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
+.guide .box i.tr{top:-2px;right:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
+.guide .box i.bl{bottom:-2px;left:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
+.guide .box i.br{bottom:-2px;right:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
+
+/* 상태 메시지 — 카메라 하단 오버레이 */
+#statusMsg{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:22px 24px;
+  font-size:clamp(22px,3.5vw,42px);font-weight:900;
+  text-align:center;z-index:3;
+  transition:background .2s,color .2s;
+}
+.state-ready   {background:rgba(0,0,0,0.55);color:#fff}
+.state-checking{background:rgba(0,0,0,0.70);color:#fff}
+.state-success {background:#22c55e;color:#fff}
+.state-wait    {background:#f59e0b;color:#111}
+.state-error   {background:#ef4444;color:#fff}
+
 .spinner{
   width:1em;height:1em;
   border:.15em solid rgba(255,255,255,.35);border-top-color:#fff;
@@ -79,64 +115,5 @@ h2{margin:0;font-size:clamp(12px,1.8vw,14px);color:#aaa;font-weight:400;letter-s
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* 카메라 박스 */
-.camera-wrapper{
-  --ratio:4/3;
-  position:relative;margin:0 16px;
-  width:calc(100% - 32px);
-  aspect-ratio:var(--ratio);background:#000;
-  border-radius:12px;overflow:hidden;
-  border:1.5px solid #ddd;max-height:62vh;
-}
-video{width:100%;height:100%;object-fit:cover}
-.overlay{position:absolute;inset:0;pointer-events:none;z-index:1}
-
-/* QR 가이드 — 흰색 꺾쇠 */
-.guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
-.guide .box{
-  --guide-size:min(68%,520px);
-  --corner-color:rgba(255,255,255,.90);--corner-thick:4px;
-  position:relative;width:var(--guide-size);aspect-ratio:1/1;border-radius:12px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.40);
-}
-.guide .box i{position:absolute;width:48px;height:48px;border-radius:6px}
-.guide .box i.tl{top:-1px;left:-1px;border-top:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.tr{top:-1px;right:-1px;border-top:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.bl{bottom:-1px;left:-1px;border-bottom:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.br{bottom:-1px;right:-1px;border-bottom:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
-
-/* 상태별 카메라 테두리 */
-.cam-success{border-color:#1a7a4a!important;box-shadow:0 0 0 3px rgba(26,122,74,.2)}
-.cam-error  {border-color:#d93025!important}
-.cam-check  {border-color:#4a90d9!important}
-.cam-wait   {border-color:#e8a020!important}
-
-/* 전체 배경 변화 — 은은하게 */
-body.bg-checking{background:#eef3fa!important}
-body.bg-success {background:#eaf4ee!important}
-body.bg-error   {background:#fdecea!important}
-body.bg-wait    {background:#fdf6e3!important}
-
-/* 스캔 안내 */
-.scan-guide{
-  margin:10px 16px 0;padding:10px 16px;
-  background:#fff;border-radius:8px;border:1px solid #ececec;
-  display:flex;flex-wrap:wrap;justify-content:center;gap:2px 18px;
-}
-.scan-guide span{font-size:clamp(11px,1.5vw,13px);color:#aaa}
-
-/* 시작 버튼 */
-#startBtn{
-  display:block;margin:16px auto 0;
-  padding:14px 44px;font-size:15px;font-weight:600;
-  border-radius:8px;border:0;letter-spacing:-.2px;
-  background:#111;color:#fff;cursor:pointer;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  transition:opacity .12s;
-}
-#startBtn:active{opacity:.75}
-.hidden{display:none}
-
-/* 성공 보조 줄 */
-.count-sub{display:block;margin-top:5px;font-weight:500;font-size:clamp(14px,2vw,17px);opacity:.88}
-.count-big{font-weight:700}
+.count-sub{display:block;margin-top:4px;font-size:clamp(16px,2vw,22px);font-weight:500;opacity:.9}
+.count-big{font-weight:900}
