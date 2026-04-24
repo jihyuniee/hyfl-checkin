@@ -2,64 +2,63 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR 입장 확인 — 셀프 체크인</title>
-  <link rel="stylesheet" href="style.css?v=kiosk-3" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>입장 체크인</title>
+  <link rel="stylesheet" href="style.css?v=kiosk-4" />
 </head>
 <body>
-  <div class="container">
 
-    <div class="header-area">
-      <h1>한영외국어고등학교</h1>
-      <h2>입학설명회</h2>
+  <!-- 왼쪽 패널 -->
+  <div class="left-panel">
+    <div class="school-info">
+      <div class="school-name">한영외국어고등학교</div>
+      <div class="event-name">입학설명회 체크인</div>
     </div>
 
-    <div class="count-section">
-      <p class="count-label">입장 총 인원수</p>
-      <div class="count-selector">
-        <button class="count-btn active" data-count="1" type="button">1명</button>
-        <button class="count-btn" data-count="2" type="button">2명</button>
-        <button class="count-btn" data-count="3" type="button">3명</button>
-        <button class="count-btn" data-count="4" type="button">4명</button>
-        <button class="count-btn" data-count="5" type="button">5명<span class="count-plus">이상</span></button>
-      </div>
-      <div id="moreCount" class="more-count hidden">
-        <button class="adj-btn" id="btnMinus" type="button">−</button>
-        <span id="moreNum">5</span>명
-        <button class="adj-btn" id="btnPlus" type="button">+</button>
+    <div class="count-area">
+      <div class="count-title">입장 총 인원수</div>
+      <div id="countSelector">
+        <button class="count-btn selected" data-count="1" type="button">1</button>
+        <button class="count-btn" data-count="2" type="button">2</button>
+        <button class="count-btn" data-count="3" type="button">3</button>
+        <button class="count-btn" data-count="4" type="button">4</button>
+        <button class="count-btn" data-count="5" type="button">5</button>
+        <button class="count-btn" data-count="6" type="button">6</button>
       </div>
     </div>
 
-    <div id="statusBar">
-      <div id="statusMsg" class="state-ready">입장 인원을 선택한 뒤 QR코드를 비춰주세요</div>
-    </div>
-
-    <div class="camera-wrapper">
-      <video id="camera" autoplay playsinline muted></video>
-      <div class="overlay"></div>
-      <div class="guide" aria-hidden="true">
-        <div class="box">
-          <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="scan-guide">
-      <span>QR코드를 네모 안에 크게 맞춰주세요</span>
-      <span>화면에서 20~30cm 떨어져 주세요</span>
-      <span>초점이 맞을 때까지 잠시 기다려 주세요</span>
-    </div>
+    <div class="guide-text">인원 선택 후 QR코드를<br>오른쪽 카메라에 비춰주세요</div>
 
     <button id="startBtn" type="button" onclick="window.__start()">카메라 시작</button>
   </div>
 
+  <!-- 오른쪽 패널 -->
+  <div class="right-panel">
+    <video id="camera" autoplay playsinline muted></video>
+    <div class="guide" aria-hidden="true">
+      <div class="box">
+        <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+      </div>
+    </div>
+    <div id="statusMsg" class="state-ready">QR코드를 비춰주세요</div>
+  </div>
+
+  <!-- 화면 꺼짐 방지 + 비상 스타터 -->
   <script>
+    var _wl = null;
+    async function requestWakeLock(){
+      try{ if('wakeLock' in navigator) _wl = await navigator.wakeLock.request('screen'); }catch(_){}
+    }
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'visible') requestWakeLock();
+    });
+
     window.__start = function(){
       try{
         if(window.startAll){ window.startAll(); return; }
         var v=document.getElementById('camera'), s=document.getElementById('statusMsg');
         s.textContent='카메라 권한을 요청하는 중입니다...';
-        var c={video:{facingMode:'user'},audio:false};
+        var c={video:{facingMode:'environment'},audio:false};
         var gum=(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
           ? navigator.mediaDevices.getUserMedia(c)
           : new Promise(function(res,rej){
@@ -68,9 +67,10 @@
             });
         gum.then(function(stream){
           v.srcObject=stream; v.play().catch(function(){});
-          v.style.transform='scaleX(-1)';
-          s.textContent='입장 인원을 선택한 뒤 QR코드를 비춰주세요';
+          s.className='state-ready';
+          s.textContent='QR코드를 비춰주세요';
         }).catch(function(){
+          s.className='state-error';
           s.textContent='카메라 접근이 불가합니다. Safari 설정을 확인해 주세요.';
         });
       }catch(e){}
@@ -78,6 +78,6 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
-  <script src="script.js?v=kiosk-2" defer></script>
+  <script src="script.js?v=kiosk-4" defer></script>
 </body>
 </html>
