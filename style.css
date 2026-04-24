@@ -1,14 +1,39 @@
 /* style.css */
 *{box-sizing:border-box}
-body{margin:0;padding:24px;font-family:system-ui,-apple-system,'Segoe UI','맑은 고딕',sans-serif;color:#111827;background:#f7f7f8;transition:background-color .18s ease}
+body{margin:0;padding:20px;font-family:system-ui,-apple-system,'Segoe UI','맑은 고딕',sans-serif;color:#111827;background:#f7f7f8;transition:background-color .18s ease}
 .container{max-width:920px;margin:0 auto;text-align:center}
-h1{margin:0 0 6px;font-weight:900;letter-spacing:.2px;font-size:clamp(24px,3.2vw,40px)}
-h2{margin:0 0 10px;color:#475569;font-size:clamp(15px,2.0vw,19px)}
-.tip{margin-top:10px;font-size:13px;color:#6b7280}
+h1{margin:0 0 6px;font-weight:900;letter-spacing:.2px;font-size:clamp(22px,3.2vw,38px)}
+h2{margin:0 0 4px;color:#475569;font-size:clamp(14px,2.0vw,18px)}
+
+/* 인원 선택 */
+.count-section{margin:14px 0 10px}
+.count-label{margin:0 0 10px;font-size:clamp(18px,2.8vw,26px);font-weight:800;color:#111827}
+.count-selector{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.count-btn{
+  min-width:76px;padding:14px 16px;
+  font-size:clamp(17px,2.2vw,22px);font-weight:800;line-height:1.15;
+  border:3px solid #d1d5db;border-radius:14px;
+  background:#fff;color:#374151;cursor:pointer;
+  transition:background .12s,border-color .12s,color .12s,box-shadow .12s;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.count-btn:hover{border-color:#6366f1;background:#eef2ff;color:#3730a3}
+.count-btn.active{background:#4f46e5;border-color:#4f46e5;color:#fff;box-shadow:0 4px 16px rgba(79,70,229,.40)}
+.count-plus{display:block;font-size:.60em;font-weight:600;margin-top:2px}
+.more-count{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:18px;font-size:clamp(22px,3vw,32px);font-weight:900;color:#111827}
+.adj-btn{
+  width:54px;height:54px;border-radius:50%;
+  border:3px solid #4f46e5;background:#fff;color:#4f46e5;
+  font-size:28px;line-height:1;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s;
+}
+.adj-btn:active{background:#4f46e5;color:#fff}
 
 /* 상태바 */
-#statusBar{margin:12px auto 14px;max-width:820px}
-#statusMsg{display:block;width:100%;padding:18px 20px;border-radius:16px;font-weight:900;font-size:clamp(22px,3.6vw,38px);letter-spacing:.2px;text-shadow:0 2px 7px rgba(0,0,0,.18);transition:all .18s ease}
+#statusBar{margin:10px auto 12px;max-width:820px}
+#statusMsg{display:block;width:100%;padding:16px 20px;border-radius:16px;font-weight:900;font-size:clamp(20px,3.2vw,34px);letter-spacing:.2px;text-shadow:0 2px 7px rgba(0,0,0,.18);transition:all .18s ease}
 .state-ready{background:#eef2f7;color:#111827}
 .state-checking{background:#1d4ed8;color:#fff}
 .state-success{background:#22c55e;color:#062e0e}
@@ -19,60 +44,53 @@ h2{margin:0 0 10px;color:#475569;font-size:clamp(15px,2.0vw,19px)}
 
 /* 카메라 박스 */
 .camera-wrapper{
-  --ratio: 4/3;
-  position:relative;margin:0 auto 12px;width:100%;max-width:740px;
+  --ratio:4/3;
+  position:relative;margin:0 auto 0;width:100%;max-width:740px;
   aspect-ratio:var(--ratio);background:#000;border-radius:20px;overflow:hidden;
-  border:6px solid #e5e7eb;box-shadow:0 12px 30px rgba(0,0,0,.18);max-height:68vh
+  border:6px solid #e5e7eb;box-shadow:0 12px 30px rgba(0,0,0,.18);max-height:60vh
 }
-video{width:100%;height:100%;object-fit:cover;}
-
-/* 얇은 내부 라인 */
+video{width:100%;height:100%;object-fit:cover}
 .overlay{position:absolute;inset:0;pointer-events:none;border:2px solid rgba(255,255,255,.22);border-radius:14px;z-index:1}
 
-/* 빨간 꺾쇠 가이드 */
+/* QR 가이드 박스 — 확장(60%→70%) */
 .guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
 .guide .box{
-  --guide-size:min(60%,520px);
-  --corner-color:#ff3b30; --corner-thick:6px;
+  --guide-size:min(70%,600px);
+  --corner-color:#ff3b30;--corner-thick:7px;
   position:relative;width:var(--guide-size);aspect-ratio:1/1;border-radius:16px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.35);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.32);
 }
-.guide .box i{position:absolute;width:56px;height:56px;border-radius:12px;filter:drop-shadow(0 0 6px rgba(255,59,48,.45))}
+.guide .box i{position:absolute;width:64px;height:64px;border-radius:12px;filter:drop-shadow(0 0 6px rgba(255,59,48,.5))}
 .guide .box i.tl{top:-2px;left:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
 .guide .box i.tr{top:-2px;right:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
 .guide .box i.bl{bottom:-2px;left:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
 .guide .box i.br{bottom:-2px;right:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
 
-/* 상태별 카메라 강조 */
-.cam-success{box-shadow:0 0 0 4px #22c55e inset,0 12px 34px rgba(34,197,94,.28)}
-.cam-error{box-shadow:0 0 0 4px #ef4444 inset,0 12px 34px rgba(239,68,68,.28)}
-.cam-check{box-shadow:0 0 0 4px #60a5fa inset,0 12px 34px rgba(96,165,250,.28)}
-.cam-wait{box-shadow:0 0 0 4px #f59e0b inset,0 12px 34px rgba(245,158,11,.28)}
+/* 상태별 카메라 테두리 */
+.cam-success{box-shadow:0 0 0 5px #22c55e inset,0 12px 34px rgba(34,197,94,.28)}
+.cam-error  {box-shadow:0 0 0 5px #ef4444 inset,0 12px 34px rgba(239,68,68,.28)}
+.cam-check  {box-shadow:0 0 0 5px #60a5fa inset,0 12px 34px rgba(96,165,250,.28)}
+.cam-wait   {box-shadow:0 0 0 5px #f59e0b inset,0 12px 34px rgba(245,158,11,.28)}
 
 /* 전체 배경 */
 body.bg-checking{background-color:#0ea5e9!important}
-body.bg-success{background-color:#10b981!important}
-body.bg-error{background-color:#ef4444!important}
-body.bg-wait{background-color:#fde68a!important}
+body.bg-success {background-color:#10b981!important}
+body.bg-error   {background-color:#ef4444!important}
+body.bg-wait    {background-color:#fde68a!important}
 
-/* 대기 동안 카메라 탈색(손 뗄 타이밍) */
-.camera-wrapper.is-paused video{ filter:saturate(.2) brightness(.85); }
-.camera-wrapper.is-paused .guide{ opacity:.22; }
+/* 스캔 안내 */
+.scan-guide{margin:8px auto 10px;max-width:740px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px}
+.scan-guide span{font-size:clamp(12px,1.6vw,15px);color:#374151}
 
-/* 버튼 */
+/* 시작 버튼 */
 #startBtn{
-  display:block;margin:0 auto;padding:12px 16px;font-size:16px;border-radius:10px;border:0;
-  box-shadow:0 6px 16px rgba(0,0,0,.15); position:relative; z-index:10;
-  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  display:block;margin:8px auto 0;padding:12px 28px;font-size:16px;font-weight:700;
+  border-radius:10px;border:0;background:#4f46e5;color:#fff;cursor:pointer;
+  box-shadow:0 6px 16px rgba(79,70,229,.3);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .hidden{display:none}
 
-/* 대기(주황) 상태 */
-.state-wait { background:#f59e0b; color:#111; }
-.cam-wait   { box-shadow:0 0 0 4px #f59e0b inset,0 12px 34px rgba(245,158,11,.28); }
-body.bg-wait{ background-color:#f59e0b!important }
-
-/* 큰 숫자 + 보조 문구 */
+/* 성공 메시지 보조 줄 */
+.count-sub{display:block;margin-top:6px;font-weight:700;font-size:clamp(16px,2.6vw,24px);opacity:.95}
 .count-big{display:inline-block;font-weight:900;font-size:clamp(40px,6.5vw,72px);letter-spacing:.02em;min-width:1.6em}
-.count-sub{display:block;margin-top:4px;font-weight:700;font-size:clamp(16px,2.6vw,22px);opacity:.95}
-
