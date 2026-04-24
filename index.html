@@ -4,12 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR 입장 확인 — 셀프 체크인</title>
-  <link rel="stylesheet" href="style.css?v=kiosk-1" />
+  <link rel="stylesheet" href="style.css?v=kiosk-2" />
 </head>
 <body>
   <div class="container">
-    <h1>한영외국어고등학교</h1>
-    <h2>2026학년도 2차 입학설명회</h2>
+
+    <!-- 헤더 -->
+    <div class="header-area">
+      <div class="header-icon">🏫</div>
+      <h1>한영외국어고등학교</h1>
+      <h2>입학설명회</h2>
+    </div>
 
     <!-- 인원 선택 -->
     <div class="count-section">
@@ -51,7 +56,7 @@
       <span>⏳ 초점이 맞을 때까지 잠시 기다려 주세요</span>
     </div>
 
-    <button id="startBtn" type="button" onclick="window.__start()">카메라 시작</button>
+    <button id="startBtn" type="button" onclick="window.__start()">📷 카메라 시작</button>
   </div>
 
   <!-- 비상 스타터 — script.js 로드 실패 시 최소 카메라만 -->
