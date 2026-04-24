@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR 입장 확인</title>
+  <link rel="stylesheet" href="style.css?v=mirror-fix" />
+</head>
+<body>
+  <div class="container">
+    <h1>한영외국어고등학교</h1>
+    <h2>2026학년도 2차 입학설명회</h2>
+    <p>📱 입장 확인을 위해 QR코드를 비춰주세요</p>
+
+    <div id="statusBar">
+      <div id="statusMsg" class="state-ready">📷 카메라 준비 중입니다...</div>
+    </div>
+
+    <div class="camera-wrapper">
+      <video id="camera" autoplay playsinline muted></video>
+      <div class="overlay"></div>
+      <div class="guide" aria-hidden="true">
+        <div class="box">
+          <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+        </div>
+      </div>
+    </div>
+
+    <button id="startBtn" type="button" onclick="window.__start()">카메라 시작</button>
+    <p class="tip">인식이 느리면 화면과의 거리·각도를 조절해 주세요.</p>
+  </div>
+
+  <!-- 비상 스타터(외부 스크립트 실패시 최소 미리보기만) — '간이 모드' 문구 제거 -->
+  <script>
+    window.__start = function(){
+      try{
+        if (window.startAll) { window.startAll(); return; }
+        var v = document.getElementById('camera');
+        var s = document.getElementById('statusMsg');
+        s.textContent = '🔐 카메라 권한 요청 중...';
+        var c = { video:{ facingMode:'user' }, audio:false };
+        var gum = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+                  ? navigator.mediaDevices.getUserMedia(c)
+                  : new Promise(function(res,rej){
+                      (navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia)
+                        .call(navigator, c, res, rej);
+                    });
+        gum.then(function(stream){
+          v.srcObject = stream;
+          v.play().catch(function(){});
+          /* 거울 표시 강제 */
+          v.style.transform = 'scaleX(-1)';
+          s.textContent = '✅ 카메라 준비 완료.';
+        }).catch(function(){
+          s.textContent = '❌ 카메라 접근 불가. Safari 설정을 확인해 주세요.';
+        });
+      }catch(e){}
+    };
+  </script>
+
+  <!-- 폴백 디코더 -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+  <!-- 메인 스크립트 -->
+<script src="script.js?v=count-both-3" defer></script>
+<link rel="stylesheet" href="style.css?v=wait-amber-1">
+
+</body>
+</html>
