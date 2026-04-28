@@ -1,5 +1,5 @@
 /***** 설정 *****/
-var API           = 'https://script.google.com/macros/s/AKfycbyfj0EACm8JggLniAaLa4pQppcKnNeXVDHoaEwOHVvtAOd4aW5r6-c7sF2f_8iTbSE-/exec';
+var API           = 'https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
 var COOLDOWN_MS   = 500;
 var NEXT_DELAY_MS = 2000;
 
