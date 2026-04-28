@@ -1,5 +1,5 @@
 /***** 설정 *****/
-var API = 'https://script.google.com/macros/s/AKfycbz6RgYyT4s7TgFsGnCKgnM87VxyyhSF-3-ibf6Fwa9Pfs-hvctXc3w-RzmSK3ad9aHV/exec';
+var API = 'https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
 var COOLDOWN_MS       = 500;
 var NEXT_DELAY_MS     = 3000;
 var USE_FRONT_DEFAULT = false;   // 후면 카메라
