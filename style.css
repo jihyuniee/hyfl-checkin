@@ -1,119 +1,172 @@
-/* style.css — Landscape kiosk v4 */
-*{box-sizing:border-box;margin:0;padding:0}
-html{height:100%;overflow:hidden}
-body{
-  width:100%;height:100dvh;
-  overflow:hidden;
-  display:flex;flex-direction:row;
-  font-family:-apple-system,'Apple SD Gothic Neo',BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:#0b1a2a;color:#fff;
+/* style.css — Landscape kiosk v5 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; overflow: hidden; }
+body {
+  width: 100%; height: 100dvh;
+  overflow: hidden;
+  display: flex; flex-direction: row;
+  font-family: -apple-system, 'Apple SD Gothic Neo', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0b1a2a; color: #fff;
 }
 
-/* 왼쪽 패널 */
-.left-panel{
-  width:45%;height:100%;
-  background:#0b1a2a;
-  padding:40px;
-  display:flex;flex-direction:column;
-  justify-content:center;gap:32px;
-  flex-shrink:0;
+/* ── 좌측 패널 ── */
+.left-panel {
+  width: 42%; height: 100%;
+  background: #0b1a2a;
+  padding: 44px 48px;
+  display: flex; flex-direction: column;
+  justify-content: center; gap: 36px;
+  flex-shrink: 0;
 }
 
-/* 학교명 */
-.school-name{font-size:18px;color:rgba(255,255,255,0.55);font-weight:500;margin-bottom:6px}
-.event-name {font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:.8px;text-transform:uppercase}
-
-/* 입장 총 인원수 */
-.count-title{
-  font-size:clamp(28px,4vw,52px);
-  font-weight:900;color:#fff;line-height:1.15;
+/* 학교 정보 */
+.school-info { display: flex; flex-direction: column; gap: 8px; }
+.school-name {
+  font-size: clamp(16px, 2vw, 24px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.4;
+}
+.event-label {
+  font-size: clamp(28px, 4.2vw, 54px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -.5px;
+  line-height: 1.1;
 }
 
-/* 인원수 버튼 */
-#countSelector{display:flex;gap:12px;flex-wrap:wrap}
-.count-btn{
-  width:80px;height:80px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.10);
-  border:2px solid rgba(255,255,255,0.22);
-  color:#fff;
-  font-size:28px;font-weight:900;
-  cursor:pointer;
-  transition:all 0.15s;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  display:flex;align-items:center;justify-content:center;
+/* 인원 선택 섹션 */
+.count-section { display: flex; flex-direction: column; gap: 16px; }
+.count-title {
+  font-size: clamp(13px, 1.5vw, 18px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.50);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
-.count-btn:active{transform:scale(0.93);opacity:.8}
-.count-btn.selected{
-  background:#2563eb;
-  border:2px solid #60a5fa;
-  transform:scale(1.15);
-  box-shadow:0 0 0 4px rgba(37,99,235,0.40);
+
+/* 인원수 버튼 그리드 */
+#countSelector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 340px;
 }
+.count-btn {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.85);
+  font-size: clamp(22px, 3.2vw, 40px);
+  font-weight: 900;
+  cursor: pointer;
+  transition: background .14s, border-color .14s, transform .14s, box-shadow .14s, color .14s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none;
+}
+.count-btn:active { transform: scale(0.88); }
+.count-btn.selected {
+  background: #2563eb;
+  border-color: #93c5fd;
+  color: #fff;
+  transform: scale(1.14);
+  box-shadow: 0 0 0 5px rgba(37,99,235,0.38), 0 4px 16px rgba(37,99,235,0.45);
+}
+/* "6명" 버튼은 글자가 길어 폰트 축소 */
+.count-btn[data-count="6"] { font-size: clamp(15px, 2.2vw, 26px); }
 
 /* 안내 문구 */
-.guide-text{font-size:18px;color:rgba(255,255,255,0.60);line-height:1.7}
-
-/* 시작 버튼 */
-#startBtn{
-  padding:14px 36px;font-size:16px;font-weight:600;
-  border:0;border-radius:10px;
-  background:#2563eb;color:#fff;cursor:pointer;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  align-self:flex-start;transition:opacity .12s;
+.guide-text {
+  font-size: clamp(17px, 2.1vw, 26px);
+  color: rgba(255,255,255,0.78);
+  line-height: 1.7;
+  font-weight: 500;
 }
-#startBtn:active{opacity:.75}
-.hidden{display:none}
-
-/* 오른쪽 패널 */
-.right-panel{
-  width:55%;height:100%;
-  background:#000;
-  position:relative;overflow:hidden;
-  flex-shrink:0;
+.guide-sub {
+  display: block;
+  margin-top: 10px;
+  font-size: clamp(12px, 1.4vw, 17px);
+  color: rgba(255,255,255,0.42);
+  font-weight: 400;
+  line-height: 1.5;
 }
-#camera{width:100%;height:100%;object-fit:cover;display:block}
 
-/* QR 가이드 꺾쇠 — 초록 */
-.guide{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  pointer-events:none;z-index:2;
+/* 카메라 시작 버튼 */
+#startBtn {
+  padding: 18px 44px;
+  font-size: clamp(16px, 1.9vw, 22px);
+  font-weight: 700;
+  border: 0; border-radius: 14px;
+  background: #2563eb; color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  align-self: flex-start;
+  transition: opacity .12s, transform .1s;
+  letter-spacing: -.2px;
 }
-.guide .box{
-  --guide-size:min(60%,500px);
-  --corner-color:#22c55e;--corner-thick:5px;
-  position:relative;width:var(--guide-size);aspect-ratio:1/1;border-radius:12px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.38);
-}
-.guide .box i{position:absolute;width:52px;height:52px;border-radius:8px}
-.guide .box i.tl{top:-2px;left:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.tr{top:-2px;right:-2px;border-top:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.bl{bottom:-2px;left:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-left:var(--corner-thick) solid var(--corner-color)}
-.guide .box i.br{bottom:-2px;right:-2px;border-bottom:var(--corner-thick) solid var(--corner-color);border-right:var(--corner-thick) solid var(--corner-color)}
+#startBtn:active { opacity: .8; transform: scale(0.96); }
+#startBtn:disabled { opacity: .45; cursor: default; }
+.hidden { display: none !important; }
 
-/* 상태 메시지 — 카메라 하단 오버레이 */
-#statusMsg{
-  position:absolute;bottom:0;left:0;right:0;
-  padding:22px 24px;
-  font-size:clamp(22px,3.5vw,42px);font-weight:900;
-  text-align:center;z-index:3;
-  transition:background .2s,color .2s;
+/* ── 우측 패널 ── */
+.right-panel {
+  flex: 1; height: 100%;
+  background: #000;
+  position: relative; overflow: hidden;
 }
-.state-ready   {background:rgba(0,0,0,0.55);color:#fff}
-.state-checking{background:rgba(0,0,0,0.70);color:#fff}
-.state-success {background:#22c55e;color:#fff}
-.state-wait    {background:#f59e0b;color:#111}
-.state-error   {background:#ef4444;color:#fff}
-
-.spinner{
-  width:1em;height:1em;
-  border:.15em solid rgba(255,255,255,.35);border-top-color:#fff;
-  border-radius:50%;display:inline-block;
-  vertical-align:-.15em;margin-right:.4em;
-  animation:spin .8s linear infinite;
+#camera {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
 
-.count-sub{display:block;margin-top:4px;font-size:clamp(16px,2vw,22px);font-weight:500;opacity:.9}
-.count-big{font-weight:900}
+/* QR 가이드 꺾쇠 */
+.guide-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; z-index: 2;
+}
+.qr-box {
+  --sz: min(58%, 460px);
+  --cc: #22c55e;
+  --ct: 5px;
+  position: relative;
+  width: var(--sz); aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.40);
+}
+.qr-box i { position: absolute; width: 52px; height: 52px; border-radius: 8px; }
+.qr-box i.tl { top:-2px; left:-2px;   border-top:var(--ct) solid var(--cc); border-left:var(--ct) solid var(--cc); }
+.qr-box i.tr { top:-2px; right:-2px;  border-top:var(--ct) solid var(--cc); border-right:var(--ct) solid var(--cc); }
+.qr-box i.bl { bottom:-2px; left:-2px;  border-bottom:var(--ct) solid var(--cc); border-left:var(--ct) solid var(--cc); }
+.qr-box i.br { bottom:-2px; right:-2px; border-bottom:var(--ct) solid var(--cc); border-right:var(--ct) solid var(--cc); }
+
+/* 상태 메시지 */
+#statusMsg {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 26px 28px;
+  font-size: clamp(22px, 4vw, 52px);
+  font-weight: 900;
+  text-align: center;
+  z-index: 3;
+  line-height: 1.2;
+  transition: background .18s, color .18s, padding .18s, font-size .18s;
+}
+.state-ready    { background: rgba(0,0,0,0.62); color: rgba(255,255,255,0.90); }
+.state-checking { background: rgba(0,0,0,0.78); color: #fff; }
+.state-success  { background: #16a34a; color: #fff; padding: 36px 28px; font-size: clamp(26px, 5vw, 62px); }
+.state-wait     { background: #b45309; color: #fff; }
+.state-error    { background: #b91c1c; color: #fff; }
+
+/* 스피너 */
+.spinner {
+  width: 1em; height: 1em;
+  border: .15em solid rgba(255,255,255,.30); border-top-color: #fff;
+  border-radius: 50%; display: inline-block;
+  vertical-align: -.15em; margin-right: .5em;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
