@@ -17,7 +17,13 @@ function updateCountUI(){
 
 (function(){
   document.querySelectorAll('.count-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
+    btn.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      selectedCount = parseInt(btn.dataset.count, 10);
+      updateCountUI();
+    });
+    btn.addEventListener('click', function(e){
+      // pointerdown이 이미 처리했으므로 UI 재적용만
       selectedCount = parseInt(btn.dataset.count, 10);
       updateCountUI();
     });
@@ -89,6 +95,15 @@ function initCamera(){
       video.srcObject=stream;
       video.play().catch(function(){ setTimeout(function(){ video.play().catch(function(){}); },200); });
       if(MIRROR_DISPLAY) video.style.transform='scaleX(-1)';
+      // 후면 카메라 기본 줌이 들어간 경우 zoom=1로 리셋
+      try{
+        stream.getVideoTracks().forEach(function(track){
+          var caps = track.getCapabilities ? track.getCapabilities() : {};
+          if(caps.zoom){
+            track.applyConstraints({advanced:[{zoom:1}]}).catch(function(){});
+          }
+        });
+      }catch(_){}
       setStatus('ready','QR코드를 비춰주세요');
       if(startBtn) startBtn.classList.add('hidden');
       startScanning();
