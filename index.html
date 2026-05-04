@@ -611,7 +611,7 @@
       background: #fff;
       width: 100%;
       transform-origin: left center;
-      animation: shrink 1800ms linear forwards;
+      animation: shrink 3000ms linear forwards;
     }
     @keyframes shrink {
       from { transform: scaleX(1); }
@@ -764,13 +764,13 @@
       </svg>
     </div>
     <div class="overlay-text">
-      <div class="overlay-title" id="overlayTitle">입장 확인 완료</div>
-      <div class="overlay-sub"   id="overlaySub">환영합니다</div>
+      <div class="overlay-title" id="overlayTitle">체크인이 완료되었습니다.</div>
+      <div class="overlay-sub"   id="overlaySub">다음 신청 학부모님을 안내해 주세요.</div>
       <div class="overlay-meta"  id="overlayMeta"></div>
     </div>
 
     <div class="reset-bar-wrap">
-      <span id="resetText">잠시 후 다음 손님을 받습니다</span>
+      <span id="resetText">잠시 후 다음 참석자를 안내합니다</span>
       <div class="reset-bar"><div class="reset-bar-fill" id="resetBarFill"></div></div>
     </div>
   </div>
@@ -835,7 +835,6 @@
     let roiIdx = 0;
     let wakeLock = null;
     let audioCtx = null;
-    const seen = new Set();
 
     let stats = { checkedIn: 0, total: 1000 };
     function renderStats() {
@@ -974,19 +973,14 @@
       const count = selectedCount;
       stats.checkedIn = Math.min(stats.total, stats.checkedIn + count);
       renderStats();
-      seen.add(token);
       sendAsync(token, count);
       successChime();
       if (navigator.vibrate) navigator.vibrate(40);
       const shortCode = token.length > 8 ? token.slice(-6) : token;
-      showOverlay('success', '입장 확인 완료', '환영합니다', [
+      showOverlay('success', '체크인이 완료되었습니다.', '다음 신청 학부모님을 안내해 주세요.', [
         `${count}명 입장`,
         shortCode
       ]);
-      startCooldown(NEXT_DELAY_MS);
-    }
-    function handleDuplicate() {
-      showOverlay('duplicate', '이미 처리된 QR입니다', '안내데스크에 문의해주세요', []);
       startCooldown(NEXT_DELAY_MS);
     }
 
@@ -1004,8 +998,7 @@
 
       // Brief scanning visual; Apps Script returns no usable response, so optimistic
       setTimeout(() => {
-        if (seen.has(token)) handleDuplicate();
-        else handleSuccess(token);
+        handleSuccess(token);
       }, 280);
     }
 
@@ -1119,7 +1112,7 @@
     window.__qrSim = {
       enterReady: () => { setState(STATE.READY); },
       success:   () => processCode('HYFL-2026-DEMO-' + Math.random().toString(36).slice(2, 6).toUpperCase()),
-      duplicate: () => { const t = 'HYFL-2026-DUPE'; seen.add(t); processCode(t); },
+      duplicate: () => { processCode('HYFL-2026-DEMO-' + Math.random().toString(36).slice(2, 6).toUpperCase()); },
       error:     () => { /* server-arbitrated; no client-side error path */ },
       hideOverlay,
       setBrand: (n, e) => { if (n) $('brandName').textContent = n; if (e) $('brandEvent').textContent = e; },
