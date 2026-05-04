@@ -2,82 +2,1179 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>입장 체크인</title>
-  <link rel="stylesheet" href="style.css?v=kiosk-4" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <title>입장 체크인 — 한영외국어고등학교 (Production)</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+
+  <style>
+    /* ===========================================
+       DESIGN TOKENS
+       =========================================== */
+    :root {
+      --c-bg-left:    #0b0d12;
+      --c-bg-right:   #050608;
+      --c-surface:    rgba(255,255,255,0.06);
+      --c-surface-2:  rgba(255,255,255,0.10);
+      --c-border:     rgba(255,255,255,0.10);
+      --c-text:       #ffffff;
+      --c-text-mute:  rgba(255,255,255,0.62);
+      --c-text-dim:   rgba(255,255,255,0.42);
+
+      --c-accent:     oklch(0.74 0.16 245);
+      --c-accent-bg:  oklch(0.42 0.14 245);
+
+      --c-success:    oklch(0.66 0.18 150);
+      --c-duplicate:  oklch(0.72 0.15 60);
+      --c-error:      oklch(0.62 0.22 25);
+
+      --bg-success:   oklch(0.58 0.18 150);
+      --bg-duplicate: oklch(0.66 0.16 60);
+      --bg-error:     oklch(0.55 0.22 25);
+
+      --r-lg: 24px;
+      --r-md: 16px;
+      --r-sm: 12px;
+
+      --tap-min: 64px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      background: #000;
+      color: var(--c-text);
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      text-wrap: pretty;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; }
+
+    /* ===========================================
+       SPLIT LAYOUT
+       =========================================== */
+    .kiosk {
+      position: fixed; inset: 0;
+      display: grid;
+      grid-template-columns: minmax(360px, 38%) 1fr;
+      gap: 0;
+      transition: filter 240ms ease;
+    }
+
+    /* ============== LEFT PANEL ============== */
+    .panel {
+      background: linear-gradient(180deg, #0d1018 0%, #0a0c12 100%);
+      border-right: 1px solid var(--c-border);
+      padding: clamp(20px, 3vh, 36px) clamp(20px, 2.4vw, 36px);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: clamp(14px, 2.4vh, 24px);
+      min-height: 0;
+      min-width: 0;
+    }
+
+    /* Header */
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; min-width: 0;
+    }
+    .brand { flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+    .brand-name {
+      font-size: clamp(18px, 2vw, 24px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .brand-event {
+      margin-top: 2px;
+      font-size: clamp(12px, 1.2vw, 15px);
+      font-weight: 500;
+      color: var(--c-text-mute);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pad-id {
+      flex: 0 0 auto;
+      padding: 6px 12px;
+      border: 1px solid var(--c-border);
+      border-radius: 999px;
+      font-size: 12px; font-weight: 700;
+      color: var(--c-text-mute);
+      letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Section title */
+    .section-label {
+      display: flex; align-items: center; gap: 10px;
+      font-size: clamp(13px, 1.2vw, 15px);
+      font-weight: 700;
+      color: var(--c-text-dim);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .section-label .step-num {
+      display: inline-grid; place-items: center;
+      flex: 0 0 auto;
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      background: var(--c-accent-bg);
+      color: #fff;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    /* COUNT SELECTOR — main interactive area */
+    .count-block {
+      display: flex; flex-direction: column;
+      gap: clamp(10px, 1.6vh, 16px);
+      min-height: 0;
+    }
+    .count-prompt {
+      font-size: clamp(20px, 2.4vw, 30px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    .count-prompt-sub {
+      font-size: clamp(13px, 1.3vw, 16px);
+      color: var(--c-text-mute);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    .count-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(8px, 1.2vw, 12px);
+      margin-top: 4px;
+    }
+    .count-btn {
+      appearance: none; border: 2px solid var(--c-border);
+      background: var(--c-surface);
+      color: var(--c-text);
+      border-radius: var(--r-md);
+      min-height: clamp(64px, 9vh, 84px);
+      font-size: clamp(28px, 3.5vw, 40px);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      transition: transform 120ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+      position: relative;
+    }
+    .count-btn:hover { background: var(--c-surface-2); }
+    .count-btn:active { transform: scale(0.96); }
+    .count-btn[aria-pressed="true"] {
+      background: #fff;
+      color: #0a0a0a;
+      border-color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(255,255,255,0.25);
+    }
+    .count-btn .plus-tail {
+      position: absolute;
+      bottom: 6px; right: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--c-text-dim);
+      letter-spacing: 0;
+    }
+    .count-btn[aria-pressed="true"] .plus-tail { color: rgba(0,0,0,0.5); }
+
+    /* Selected summary line */
+    .selected-summary {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: clamp(13px, 1.2vw, 15px);
+      color: var(--c-text-mute);
+      white-space: nowrap;
+    }
+    .selected-summary > span { white-space: nowrap; }
+    .selected-summary b {
+      color: #fff;
+      font-size: clamp(18px, 1.8vw, 22px);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin-left: 6px;
+    }
+
+    /* Guidance card */
+    .guidance {
+      padding: clamp(14px, 2vh, 20px) clamp(16px, 2vw, 22px);
+      background: rgba(60, 130, 246, 0.08);
+      border: 1px solid rgba(120, 170, 255, 0.18);
+      border-radius: var(--r-md);
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .guidance-icon {
+      flex: 0 0 auto;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(120, 170, 255, 0.2);
+      display: grid; place-items: center;
+      color: rgba(180, 210, 255, 0.9);
+    }
+    .guidance-text {
+      font-size: clamp(13px, 1.25vw, 15px);
+      line-height: 1.5;
+      color: rgba(220, 230, 245, 0.88);
+      font-weight: 500;
+    }
+    .guidance-text b {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Footer counter */
+    .panel-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding-top: clamp(10px, 1.6vh, 18px);
+      border-top: 1px solid var(--c-border);
+      flex-wrap: wrap;
+    }
+    .stats {
+      display: flex; gap: clamp(16px, 2.4vw, 28px);
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .stat-label {
+      font-size: 11px; font-weight: 700;
+      color: var(--c-text-dim);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .stat-value {
+      font-size: clamp(20px, 2.2vw, 28px);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .clock {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-mute);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ============== RIGHT PANEL (CAMERA) ============== */
+    .scanner {
+      position: relative;
+      background: var(--c-bg-right);
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(20px, 3vh, 36px);
+      min-width: 0; min-height: 0;
+      overflow: hidden;
+    }
+    .camera-frame {
+      position: relative;
+      width: 100%; height: 100%;
+      max-width: min(100%, calc(100vh - 80px));
+      aspect-ratio: 1 / 1;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: #0a0a0a;
+      box-shadow: 0 24px 64px -16px rgba(0,0,0,0.6),
+                  inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .camera-video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      /* Rear camera is NOT mirrored */
+      background: #0a0a0a;
+      transform: scale(var(--cam-zoom, 1));
+      transform-origin: center;
+      transition: transform 320ms ease;
+    }
+
+    /* Idle illustration — when camera not started yet */
+    .idle-art {
+      position: absolute; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px;
+      color: rgba(255,255,255,0.5);
+      pointer-events: none;
+      background: linear-gradient(160deg, #161922 0%, #0a0c12 100%);
+    }
+    /* idle-art is the empty-state background; the start CTA sits on top.
+       Hide the idle-art's text label so it doesn't compete with the CTA. */
+    .kiosk[data-state="idle"] .idle-art { display: flex; }
+    .kiosk[data-state="idle"] .idle-art-text { display: none; }
+    .kiosk[data-state="idle"] .camera-video,
+    .kiosk[data-state="idle"] .camera-vignette { display: none; }
+    .idle-art-icon {
+      width: clamp(110px, 18vmin, 180px);
+      height: clamp(110px, 18vmin, 180px);
+      opacity: 0.55;
+    }
+    .idle-art-text {
+      font-size: clamp(15px, 1.6vw, 20px);
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+    }
+
+    /* Vignette / focus dim */
+    .camera-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.5) 100%);
+      pointer-events: none;
+    }
+
+    /* Guide box */
+    .guide {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(64%, 460px);
+      aspect-ratio: 1;
+      pointer-events: none;
+    }
+    .guide::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: 24px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.28);
+    }
+    .guide-corner {
+      position: absolute;
+      width: clamp(40px, 8%, 72px);
+      height: clamp(40px, 8%, 72px);
+      border: 5px solid #fff;
+      border-radius: 4px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+      transition: border-color 240ms ease;
+    }
+    .guide-corner.tl { top: -3px; left: -3px;  border-right: none; border-bottom: none; border-top-left-radius: 22px; }
+    .guide-corner.tr { top: -3px; right: -3px; border-left: none;  border-bottom: none; border-top-right-radius: 22px; }
+    .guide-corner.bl { bottom: -3px; left: -3px;  border-right: none; border-top: none; border-bottom-left-radius: 22px; }
+    .guide-corner.br { bottom: -3px; right: -3px; border-left: none;  border-top: none; border-bottom-right-radius: 22px; }
+    .scan-line {
+      position: absolute;
+      left: 8%; right: 8%;
+      top: 50%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #fff, transparent);
+      box-shadow: 0 0 16px rgba(255,255,255,0.7);
+      opacity: 0;
+      transform: translateY(-50%);
+      border-radius: 2px;
+    }
+
+    /* Prompt under guide */
+    .prompt {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(16px, 4vh, 36px);
+      transform: translateX(-50%);
+      width: min(92%, 560px);
+      text-align: center;
+      pointer-events: none;
+    }
+    .prompt-inner {
+      display: inline-block;
+      padding: 12px 24px;
+      background: rgba(0,0,0,0.62);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .prompt-title {
+      font-size: clamp(16px, 1.8vw, 22px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    .prompt-sub {
+      margin-top: 4px;
+      font-size: clamp(12px, 1.2vw, 15px);
+      color: rgba(255,255,255,0.78);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    /* Big start button — centered over scanner area when idle */
+    .start-cta {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+      z-index: 5;
+    }
+    .kiosk[data-state="idle"] .start-cta { display: flex; }
+    .start-btn {
+      appearance: none; border: none;
+      background: #fff; color: #0a0a0a;
+      font-weight: 700;
+      font-size: clamp(18px, 1.8vw, 22px);
+      padding: clamp(18px, 2.2vh, 24px) clamp(36px, 4vw, 56px);
+      border-radius: 999px;
+      box-shadow: 0 16px 40px -12px rgba(255,255,255,0.25), 0 0 0 1px rgba(255,255,255,0.08);
+      display: inline-flex; align-items: center; gap: 12px;
+      min-height: var(--tap-min);
+      transition: transform 140ms ease;
+      white-space: nowrap;
+    }
+    .start-btn:hover { transform: translateY(-2px); }
+    .start-btn:active { transform: translateY(0) scale(0.98); }
+    .start-btn .ico { width: 22px; height: 22px; }
+    .start-hint {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Scan zoom corner buttons */
+    .zoom-controls {
+      position: absolute;
+      top: clamp(14px, 2vh, 22px);
+      right: clamp(14px, 2vw, 22px);
+      display: flex; gap: 6px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 4px;
+      z-index: 6;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+    .kiosk[data-state="ready"] .zoom-controls,
+    .kiosk[data-state="scanning"] .zoom-controls { opacity: 1; }
+    .zoom-btn {
+      appearance: none; border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.85);
+      width: 38px; height: 38px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      transition: background 160ms ease;
+    }
+    .zoom-btn:hover { background: rgba(255,255,255,0.1); }
+    .zoom-btn[aria-pressed="true"] {
+      background: #fff;
+      color: #0a0a0a;
+    }
+
+    /* ============== STATE-DRIVEN STYLING ============== */
+    .kiosk[data-state="idle"] .guide { opacity: 0.45; }
+    .kiosk[data-state="idle"] .prompt { opacity: 0; }
+
+    .kiosk[data-state="ready"] .guide-corner {
+      animation: pulseCorners 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseCorners {
+      0%, 100% { border-color: rgba(255,255,255,0.95); transform: scale(1); }
+      50%      { border-color: rgba(255,255,255,0.55); transform: scale(0.97); }
+    }
+
+    .kiosk[data-state="scanning"] .guide-corner {
+      border-color: oklch(0.78 0.16 80);
+      animation: none;
+    }
+    .kiosk[data-state="scanning"] .scan-line {
+      opacity: 1;
+      animation: scanSweep 1.2s ease-in-out infinite;
+    }
+    @keyframes scanSweep {
+      0%   { top: 12%; }
+      50%  { top: 88%; }
+      100% { top: 12%; }
+    }
+
+    /* Disable count buttons during overlay */
+    .kiosk[data-locked="true"] .count-btn { opacity: 0.5; pointer-events: none; }
+
+    /* ============== FULLSCREEN STATE OVERLAY ============== */
+    .overlay {
+      position: fixed; inset: 0;
+      display: flex;
+      align-items: center; justify-content: center;
+      gap: clamp(28px, 4vw, 56px);
+      padding: clamp(24px, 3vh, 40px) clamp(40px, 5vw, 80px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity 220ms ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .overlay.success   { background: var(--bg-success); }
+    .overlay.duplicate { background: var(--bg-duplicate); }
+    .overlay.error     { background: var(--bg-error); }
+
+    .overlay-icon {
+      flex: 0 0 auto;
+      width: clamp(120px, 22vh, 220px);
+      height: clamp(120px, 22vh, 220px);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: grid; place-items: center;
+      backdrop-filter: blur(6px);
+      transform: scale(0.6);
+      transition: transform 480ms cubic-bezier(.2,1.4,.4,1);
+    }
+    .overlay.show .overlay-icon { transform: scale(1); }
+    .overlay-icon svg {
+      width: 60%; height: 60%;
+      stroke: #fff; fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .overlay-text {
+      flex: 1 1 auto; min-width: 0;
+      display: flex; flex-direction: column;
+      gap: clamp(12px, 2vh, 20px);
+    }
+    .overlay-title {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 420ms cubic-bezier(.2,1,.3,1) 80ms, opacity 420ms ease 80ms;
+    }
+    .overlay-sub {
+      font-size: clamp(18px, 2.4vw, 30px);
+      font-weight: 500;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: -0.02em;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 420ms cubic-bezier(.2,1,.3,1) 160ms, opacity 420ms ease 160ms;
+    }
+    .overlay-meta {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      align-self: flex-start;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 420ms cubic-bezier(.2,1,.3,1) 220ms, opacity 420ms ease 220ms;
+    }
+    .overlay-pill {
+      padding: 10px 22px;
+      background: rgba(255,255,255,0.22);
+      border-radius: 999px;
+      font-size: clamp(15px, 1.6vw, 20px);
+      font-weight: 600;
+    }
+    .overlay.show .overlay-title,
+    .overlay.show .overlay-sub,
+    .overlay.show .overlay-meta {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .reset-bar-wrap {
+      position: absolute;
+      bottom: clamp(20px, 3vh, 36px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: center; gap: 12px;
+      color: rgba(255,255,255,0.85);
+      font-size: clamp(13px, 1.3vw, 16px);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .reset-bar {
+      width: 220px; height: 5px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .reset-bar-fill {
+      height: 100%;
+      background: #fff;
+      width: 100%;
+      transform-origin: left center;
+      animation: shrink 1800ms linear forwards;
+    }
+    @keyframes shrink {
+      from { transform: scaleX(1); }
+      to   { transform: scaleX(0); }
+    }
+
+    /* ============== PORTRAIT FALLBACK ============== */
+    @media (orientation: portrait) {
+      .kiosk { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .panel { border-right: none; border-bottom: 1px solid var(--c-border); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 80ms !important; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- 왼쪽 패널 -->
-  <div class="left-panel">
-    <div class="school-info">
-      <div class="school-name">한영외국어고등학교</div>
-      <div class="event-name">입학설명회 체크인</div>
-    </div>
+  <main class="kiosk" id="kiosk" data-state="idle" data-screen-label="QR Check-in Kiosk">
 
-    <div class="count-area">
-      <div class="count-title">입장 총 인원수</div>
-      <div id="countSelector">
-        <button class="count-btn selected" data-count="1" type="button">1</button>
-        <button class="count-btn" data-count="2" type="button">2</button>
-        <button class="count-btn" data-count="3" type="button">3</button>
-        <button class="count-btn" data-count="4" type="button">4</button>
-        <button class="count-btn" data-count="5" type="button">5</button>
-        <button class="count-btn" data-count="6" type="button">6</button>
+    <!-- ============ LEFT PANEL ============ -->
+    <aside class="panel" aria-label="입장 인원 선택">
+
+      <header class="panel-header">
+        <div class="brand">
+          <div class="brand-name" id="brandName">한영외국어고등학교</div>
+          <div class="brand-event" id="brandEvent">입학설명회</div>
+        </div>
+      </header>
+
+      <div class="section-label">
+        <span class="step-num">1</span>
+        <span>입장 인원 선택</span>
       </div>
+
+      <section class="count-block">
+        <div>
+          <div class="count-prompt">몇 분이 함께 입장하시나요?</div>
+          <div class="count-prompt-sub">한 가구당 한 분만 QR을 비춰주시면 됩니다.</div>
+        </div>
+
+        <div class="count-grid" role="radiogroup" aria-label="입장 인원수">
+          <button class="count-btn" type="button" role="radio" data-count="1" aria-pressed="true">1</button>
+          <button class="count-btn" type="button" role="radio" data-count="2" aria-pressed="false">2</button>
+          <button class="count-btn" type="button" role="radio" data-count="3" aria-pressed="false">3</button>
+          <button class="count-btn" type="button" role="radio" data-count="4" aria-pressed="false">4</button>
+          <button class="count-btn" type="button" role="radio" data-count="5" aria-pressed="false">5</button>
+          <button class="count-btn" type="button" role="radio" data-count="6" aria-pressed="false">6<span class="plus-tail">명+</span></button>
+        </div>
+
+        <div class="selected-summary">
+          <span>선택한 인원</span>
+          <span><b id="selectedCount">1</b> 명</span>
+        </div>
+
+        <div class="guidance">
+          <div class="guidance-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="13"/>
+              <circle cx="12" cy="16.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <div class="guidance-text">
+            <b>인원을 선택한 뒤</b> 휴대폰을 정해진 자리에 올려두면<br>
+            카메라가 QR 코드를 자동으로 인식합니다.
+          </div>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">입장</span>
+            <span class="stat-value" id="cntCheckedIn">0</span>
+          </div>
+        </div>
+        <div class="clock" id="clock">--:--</div>
+      </footer>
+    </aside>
+
+    <!-- ============ RIGHT PANEL: SCANNER ============ -->
+    <section class="scanner" aria-label="QR 스캐너">
+
+      <!-- Zoom controls (rear-cam needs less zoom) -->
+      <div class="zoom-controls" role="radiogroup" aria-label="카메라 확대 비율">
+        <button class="zoom-btn" type="button" role="radio" data-zoom="0.7"  aria-pressed="false">0.7×</button>
+        <button class="zoom-btn" type="button" role="radio" data-zoom="1"    aria-pressed="true">1×</button>
+        <button class="zoom-btn" type="button" role="radio" data-zoom="1.3"  aria-pressed="false">1.3×</button>
+      </div>
+
+      <div class="camera-frame" id="cameraFrame">
+        <video class="camera-video" id="camera" autoplay playsinline muted></video>
+        <div class="camera-vignette"></div>
+
+        <!-- Idle illustration -->
+        <div class="idle-art" aria-hidden="true">
+          <svg class="idle-art-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 32 V18 a4 4 0 0 1 4 -4 H32"/>
+            <path d="M68 14 H82 a4 4 0 0 1 4 4 V32"/>
+            <path d="M86 68 V82 a4 4 0 0 1 -4 4 H68"/>
+            <path d="M32 86 H18 a4 4 0 0 1 -4 -4 V68"/>
+            <rect x="36" y="36" width="10" height="10" rx="1"/>
+            <rect x="54" y="36" width="10" height="10" rx="1"/>
+            <rect x="36" y="54" width="10" height="10" rx="1"/>
+            <rect x="54" y="54" width="4" height="4" rx="1"/>
+            <rect x="60" y="60" width="4" height="4" rx="1"/>
+          </svg>
+          <div class="idle-art-text">아래 버튼을 눌러 시작하세요</div>
+        </div>
+
+        <!-- Guide overlay -->
+        <div class="guide" aria-hidden="true">
+          <div class="guide-corner tl"></div>
+          <div class="guide-corner tr"></div>
+          <div class="guide-corner bl"></div>
+          <div class="guide-corner br"></div>
+          <div class="scan-line"></div>
+        </div>
+
+        <!-- Prompt -->
+        <div class="prompt" id="prompt">
+          <div class="prompt-inner">
+            <div class="prompt-title" id="promptTitle">QR 코드를 사각형 안에 비춰주세요</div>
+            <div class="prompt-sub"   id="promptSub">휴대폰을 거치대에 올려두면 자동으로 인식됩니다</div>
+          </div>
+        </div>
+
+        <!-- Centered start CTA (idle only) -->
+        <div class="start-cta">
+          <button class="start-btn" id="startBtn" type="button">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            카메라 시작
+          </button>
+          <div class="start-hint">시작 후 자동으로 QR을 인식합니다</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FULLSCREEN STATE OVERLAY ============ -->
+  <div class="overlay" id="overlay" role="status" aria-live="assertive">
+    <div class="overlay-icon">
+      <svg id="overlayIcon" viewBox="0 0 100 100" aria-hidden="true">
+        <polyline points="22,52 42,72 78,32"/>
+      </svg>
+    </div>
+    <div class="overlay-text">
+      <div class="overlay-title" id="overlayTitle">입장 확인 완료</div>
+      <div class="overlay-sub"   id="overlaySub">환영합니다</div>
+      <div class="overlay-meta"  id="overlayMeta"></div>
     </div>
 
-    <div class="guide-text">인원 선택 후 QR코드를<br>오른쪽 카메라에 비춰주세요</div>
-
-    <button id="startBtn" type="button" onclick="window.__start()">카메라 시작</button>
+    <div class="reset-bar-wrap">
+      <span id="resetText">잠시 후 다음 손님을 받습니다</span>
+      <div class="reset-bar"><div class="reset-bar-fill" id="resetBarFill"></div></div>
+    </div>
   </div>
 
-  <!-- 오른쪽 패널 -->
-  <div class="right-panel">
-    <video id="camera" autoplay playsinline muted></video>
-    <div class="guide" aria-hidden="true">
-      <div class="box">
-        <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
-      </div>
-    </div>
-    <div id="statusMsg" class="state-ready">QR코드를 비춰주세요</div>
-  </div>
+  <!-- jsQR -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
-  <!-- 화면 꺼짐 방지 + 비상 스타터 -->
   <script>
-    var _wl = null;
-    async function requestWakeLock(){
-      try{ if('wakeLock' in navigator) _wl = await navigator.wakeLock.request('screen'); }catch(_){}
+  (function () {
+    'use strict';
+
+    const $ = id => document.getElementById(id);
+    const kiosk        = $('kiosk');
+    const video        = $('camera');
+    const startBtn     = $('startBtn');
+    const promptTitle  = $('promptTitle');
+    const promptSub    = $('promptSub');
+    const overlay      = $('overlay');
+    const overlayIcon  = $('overlayIcon');
+    const overlayTitle = $('overlayTitle');
+    const overlaySub   = $('overlaySub');
+    const overlayMeta  = $('overlayMeta');
+    const resetBarFill = $('resetBarFill');
+    const cntCheckedIn = $('cntCheckedIn');
+    const clockEl      = $('clock');
+    const selectedCountEl = $('selectedCount');
+    const cameraFrame  = $('cameraFrame');
+
+    const STATE = {
+      IDLE: 'idle', READY: 'ready', SCANNING: 'scanning',
+      SUCCESS: 'success', DUPLICATE: 'duplicate', ERROR: 'error'
+    };
+
+    const PROMPTS = {
+      ready:    { title: 'QR 코드를 사각형 안에 비춰주세요',  sub: '휴대폰을 거치대에 올려두면 자동으로 인식됩니다' },
+      scanning: { title: '확인 중입니다…',                   sub: '잠시만 기다려주세요' }
+    };
+
+    const ICONS = {
+      success:   '<polyline points="22,52 42,72 78,32"/>',
+      duplicate: '<circle cx="50" cy="50" r="32"/><line x1="50" y1="32" x2="50" y2="54"/><circle cx="50" cy="68" r="3" fill="#fff" stroke="none"/>',
+      error:     '<line x1="30" y1="30" x2="70" y2="70"/><line x1="70" y1="30" x2="30" y2="70"/>'
+    };
+
+    /* ============ CONFIG (Production) ============ */
+    const API           = 'https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
+    const COOLDOWN_MS   = 500;
+    const NEXT_DELAY_MS = 3000;
+    const IDEAL_W = 1920, IDEAL_H = 1080;
+    const ROI_SCALES = [0.45, 0.65, 0.80];
+
+    /* ============ STATE ============ */
+    let stream = null;
+    let scanning = false;
+    let resetTimer = null;
+    let busy = false;
+    let selectedCount = 1;
+    let zoom = 1;
+    let lastScanAt = 0;
+    let blockUntil = 0;
+    let cooldownTimer = null;
+    let roiIdx = 0;
+    let wakeLock = null;
+    let audioCtx = null;
+    const seen = new Set();
+
+    let stats = { checkedIn: 0, total: 1000 };
+    function renderStats() {
+      cntCheckedIn.textContent = stats.checkedIn.toLocaleString('ko-KR');
     }
-    document.addEventListener('visibilitychange', function(){
-      if(document.visibilityState === 'visible') requestWakeLock();
+    renderStats();
+
+    /* ============ WAKE LOCK ============ */
+    async function requestWakeLock() {
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(_) {}
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
     });
 
-    window.__start = function(){
-      try{
-        if(window.startAll){ window.startAll(); return; }
-        var v=document.getElementById('camera'), s=document.getElementById('statusMsg');
-        s.textContent='카메라 권한을 요청하는 중입니다...';
-        var c={video:{facingMode:'environment'},audio:false};
-        var gum=(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
-          ? navigator.mediaDevices.getUserMedia(c)
-          : new Promise(function(res,rej){
-              (navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia)
-                .call(navigator,c,res,rej);
-            });
-        gum.then(function(stream){
-          v.srcObject=stream; v.play().catch(function(){});
-          s.className='state-ready';
-          s.textContent='QR코드를 비춰주세요';
-        }).catch(function(){
-          s.className='state-error';
-          s.textContent='카메라 접근이 불가합니다. Safari 설정을 확인해 주세요.';
+    /* ============ AUDIO ============ */
+    function initAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      } catch(_) {}
+    }
+    function beep(freq, ms, type, vol) {
+      if (!audioCtx) return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq || 1000;
+      g.gain.value = vol != null ? vol : 0.28;
+      o.connect(g); g.connect(audioCtx.destination); o.start();
+      setTimeout(() => { try { o.stop(); } catch(_) {} }, ms || 140);
+    }
+    function successChime() {
+      beep(1100, 120, 'sine', 0.28);
+      setTimeout(() => beep(1500, 140, 'sine', 0.28), 80);
+    }
+
+    /* ============ COUNT SELECTION ============ */
+    document.querySelectorAll('.count-btn').forEach(btn => {
+      const apply = () => {
+        selectedCount = parseInt(btn.dataset.count, 10);
+        document.querySelectorAll('.count-btn').forEach(b =>
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+        selectedCountEl.textContent = String(selectedCount);
+      };
+      btn.addEventListener('pointerdown', e => { e.preventDefault(); apply(); });
+      btn.addEventListener('click', apply);
+    });
+
+    /* ============ ZOOM CONTROL ============ */
+    document.querySelectorAll('.zoom-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        zoom = parseFloat(btn.dataset.zoom);
+        document.querySelectorAll('.zoom-btn').forEach(b =>
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+        cameraFrame.style.setProperty('--cam-zoom', String(zoom));
+        if (stream) {
+          const track = stream.getVideoTracks()[0];
+          const caps = track && track.getCapabilities ? track.getCapabilities() : null;
+          if (caps && caps.zoom) {
+            const target = Math.min(caps.zoom.max, Math.max(caps.zoom.min, zoom));
+            track.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
+          }
+        }
+      });
+    });
+
+    /* ============ STATE TRANSITIONS ============ */
+    function setState(next) {
+      kiosk.dataset.state = next;
+      kiosk.dataset.locked = (next === STATE.SUCCESS || next === STATE.DUPLICATE || next === STATE.ERROR || next === STATE.SCANNING) ? 'true' : 'false';
+      if (next === STATE.READY)    { promptTitle.textContent = PROMPTS.ready.title;    promptSub.textContent = PROMPTS.ready.sub; }
+      if (next === STATE.SCANNING) { promptTitle.textContent = PROMPTS.scanning.title; promptSub.textContent = PROMPTS.scanning.sub; }
+    }
+
+    function showOverlay(kind, title, sub, pills) {
+      overlay.classList.remove('success','duplicate','error');
+      overlay.classList.add(kind, 'show');
+      overlayIcon.innerHTML = ICONS[kind] || ICONS.success;
+      overlayTitle.textContent = title;
+      overlaySub.textContent = sub;
+      overlayMeta.innerHTML = '';
+      (pills || []).forEach(p => {
+        const span = document.createElement('span');
+        span.className = 'overlay-pill';
+        span.textContent = p;
+        overlayMeta.appendChild(span);
+      });
+      resetBarFill.style.animation = 'none';
+      void resetBarFill.offsetWidth;
+      resetBarFill.style.animation = '';
+    }
+    function hideOverlay() { overlay.classList.remove('show'); }
+
+    function startCooldown(ms) {
+      blockUntil = Date.now() + ms;
+      if (cooldownTimer) { clearTimeout(cooldownTimer); cooldownTimer = null; }
+      cooldownTimer = setTimeout(() => {
+        cooldownTimer = null;
+        hideOverlay();
+        busy = false;
+        if (stream) setState(STATE.READY);
+        const oneBtn = document.querySelector('.count-btn[data-count="1"]');
+        if (oneBtn) oneBtn.click();
+      }, ms);
+    }
+
+    /* ============ TOKEN NORMALIZATION ============ */
+    function extractToken(text) {
+      try {
+        if (/^https?:\/\//i.test(text)) {
+          const u = new URL(text);
+          const t = u.searchParams.get('token');
+          if (t) return t;
+        }
+      } catch(_) {}
+      return text;
+    }
+
+    /* ============ SERVER (sendBeacon → fetch keepalive fallback) ============ */
+    function sendAsync(token, count) {
+      const payload = { token, count, ua: (navigator.userAgent || '').slice(0, 200) };
+      if (navigator.sendBeacon) {
+        const ok = navigator.sendBeacon(API, new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=UTF-8' }));
+        if (ok) return;
+      }
+      try {
+        fetch(API, {
+          method: 'POST', keepalive: true, mode: 'cors', credentials: 'omit',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-      }catch(e){}
+      } catch(_) {}
+    }
+
+    /* ============ OPTIMISTIC CHECK-IN ============ */
+    function handleSuccess(token) {
+      const count = selectedCount;
+      stats.checkedIn = Math.min(stats.total, stats.checkedIn + count);
+      renderStats();
+      seen.add(token);
+      sendAsync(token, count);
+      successChime();
+      if (navigator.vibrate) navigator.vibrate(40);
+      const shortCode = token.length > 8 ? token.slice(-6) : token;
+      showOverlay('success', '입장 확인 완료', '환영합니다', [
+        `${count}명 입장`,
+        shortCode
+      ]);
+      startCooldown(NEXT_DELAY_MS);
+    }
+    function handleDuplicate() {
+      showOverlay('duplicate', '이미 처리된 QR입니다', '안내데스크에 문의해주세요', []);
+      startCooldown(NEXT_DELAY_MS);
+    }
+
+    function processCode(text) {
+      const now = Date.now();
+      if (now - lastScanAt < COOLDOWN_MS) return;
+      if (now < blockUntil) return;
+      if (busy) return;
+      const token = extractToken(text);
+      if (!token || token.length < 3) return;
+
+      lastScanAt = now;
+      busy = true;
+      setState(STATE.SCANNING);
+
+      // Brief scanning visual; Apps Script returns no usable response, so optimistic
+      setTimeout(() => {
+        if (seen.has(token)) handleDuplicate();
+        else handleSuccess(token);
+      }, 280);
+    }
+
+    /* ============ CAMERA ============ */
+    function gUM(c) {
+      const md = navigator.mediaDevices;
+      if (md && md.getUserMedia) return md.getUserMedia(c);
+      const legacy = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+      if (legacy) return new Promise((res, rej) => legacy.call(navigator, c, res, rej));
+      return Promise.reject(new Error('getUserMedia not supported'));
+    }
+
+    async function startCamera() {
+      try {
+        promptTitle.textContent = '카메라 권한을 허용해주세요';
+        promptSub.textContent   = '';
+        initAudio();
+        requestWakeLock();
+
+        video.muted = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+
+        const back  = { video: { facingMode: 'environment', width: { ideal: IDEAL_W }, height: { ideal: IDEAL_H } }, audio: false };
+        const front = { video: { facingMode: 'user',         width: { ideal: IDEAL_W }, height: { ideal: IDEAL_H } }, audio: false };
+        const low   = { video: { width: { ideal: 640 }, height: { ideal: 480 } }, audio: false };
+
+        stream = await gUM(back).catch(() => gUM(front)).catch(() => gUM(low));
+        video.srcObject = stream;
+        video.play().catch(() => setTimeout(() => video.play().catch(()=>{}), 200));
+
+        // Reset native zoom to 1× (rear cameras often default zoomed in)
+        try {
+          stream.getVideoTracks().forEach(track => {
+            const caps = track.getCapabilities ? track.getCapabilities() : {};
+            if (caps.zoom) {
+              const target = Math.min(caps.zoom.max, Math.max(caps.zoom.min, 1));
+              track.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
+            }
+          });
+        } catch(_) {}
+
+        setState(STATE.READY);
+        startScanLoop();
+      } catch (err) {
+        console.warn('camera error', err);
+        promptTitle.textContent = '카메라를 사용할 수 없습니다';
+        promptSub.textContent   = (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError'))
+          ? '브라우저 카메라 권한을 허용해주세요'
+          : '브라우저 권한 설정을 확인해주세요';
+      }
+    }
+
+    /* ============ SCAN LOOP — BarcodeDetector → jsQR, ROI cycling ============ */
+    function startScanLoop() {
+      if (scanning) return;
+      scanning = true;
+
+      const hasBD = ('BarcodeDetector' in window);
+      const detector = hasBD ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      const drawFrame = (scale) => {
+        const w = video.videoWidth || 0, h = video.videoHeight || 0;
+        if (!w || !h) return null;
+        const side = Math.floor(Math.min(w, h) * scale);
+        const x = Math.floor((w - side) / 2);
+        const y = Math.floor((h - side) / 2);
+        canvas.width = side; canvas.height = side;
+        ctx.drawImage(video, x, y, side, side, 0, 0, side, side);
+        return { side };
+      };
+
+      const tick = () => {
+        if (!scanning) return;
+        const now = Date.now();
+        if (video.readyState === video.HAVE_ENOUGH_DATA && now >= blockUntil && !busy) {
+          const scale = ROI_SCALES[roiIdx % ROI_SCALES.length]; roiIdx++;
+          const roi = drawFrame(scale);
+          if (roi) {
+            if (detector) {
+              detector.detect(canvas).then(codes => {
+                if (codes && codes.length) processCode((codes[0].rawValue || '').trim());
+              }).catch(()=>{});
+            } else if (window.jsQR) {
+              const img = ctx.getImageData(0, 0, roi.side, roi.side);
+              const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+              if (code && code.data) processCode(code.data.trim());
+            }
+          }
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    /* ============ CLOCK ============ */
+    function tickClock() {
+      const d = new Date();
+      clockEl.textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+    tickClock();
+    setInterval(tickClock, 15000);
+
+    /* ============ WIRE UP ============ */
+    startBtn.addEventListener('click', startCamera);
+    startBtn.addEventListener('touchend', e => { e.preventDefault(); startCamera(); }, { passive: false });
+
+    /* ============ SIM HOOKS (Tweaks panel) ============ */
+    window.__qrSim = {
+      enterReady: () => { setState(STATE.READY); },
+      success:   () => processCode('HYFL-2026-DEMO-' + Math.random().toString(36).slice(2, 6).toUpperCase()),
+      duplicate: () => { const t = 'HYFL-2026-DUPE'; seen.add(t); processCode(t); },
+      error:     () => { /* server-arbitrated; no client-side error path */ },
+      hideOverlay,
+      setBrand: (n, e) => { if (n) $('brandName').textContent = n; if (e) $('brandEvent').textContent = e; },
+      setTotal: (t) => { stats.total = t; renderStats(); }
     };
+  })();
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
-  <script src="script.js?v=kiosk-4" defer></script>
+  <!-- ============ TWEAKS PANEL ============ -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <div id="tweaks-root"></div>
+
+  <script type="text/babel">
+    const { useEffect } = React;
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "brandName": "한영외국어고등학교",
+      "brandEvent": "입학설명회",
+      "totalCapacity": 1000
+    }/*EDITMODE-END*/;
+
+    function TweaksApp() {
+      const [t, setT] = useTweaks(TWEAK_DEFAULTS);
+      useEffect(() => { window.__qrSim?.setBrand(t.brandName, t.brandEvent); }, [t.brandName, t.brandEvent]);
+      useEffect(() => { window.__qrSim?.setTotal(t.totalCapacity); }, [t.totalCapacity]);
+
+      return (
+        <TweaksPanel title="Kiosk Tweaks">
+          <TweakSection title="Branding">
+            <TweakText   label="학교명"     value={t.brandName}     onChange={v => setT('brandName', v)} />
+            <TweakText   label="행사명"     value={t.brandEvent}    onChange={v => setT('brandEvent', v)} />
+            <TweakNumber label="총 정원"    value={t.totalCapacity} onChange={v => setT('totalCapacity', v)} />
+          </TweakSection>
+
+          <TweakSection title="State Preview">
+            <p style={{fontSize:12, color:'#777', margin:'2px 0 8px'}}>
+              실제 QR 없이도 각 상태를 미리 볼 수 있습니다. 먼저 좌측에서 인원수를 선택하세요.
+            </p>
+            <div style={{display:'grid', gap:8}}>
+              <TweakButton onClick={() => window.__qrSim?.enterReady()}>▶ 대기 상태로</TweakButton>
+              <TweakButton onClick={() => window.__qrSim?.success()}>✓ 성공 (입장 확인)</TweakButton>
+              <TweakButton onClick={() => window.__qrSim?.duplicate()}>! 중복 (이미 입장)</TweakButton>
+              <TweakButton onClick={() => window.__qrSim?.error()}>✕ 오류 (미등록 QR)</TweakButton>
+              <TweakButton onClick={() => window.__qrSim?.hideOverlay()}>↺ 오버레이 닫기</TweakButton>
+            </div>
+          </TweakSection>
+        </TweaksPanel>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<TweaksApp />);
+  </script>
+
 </body>
 </html>
