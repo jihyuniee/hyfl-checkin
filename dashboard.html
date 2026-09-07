@@ -51,7 +51,14 @@ h1{margin:0 0 5px;font-size:clamp(23px,3vw,34px);letter-spacing:-.04em}.sub{font
 const API='https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
 const $=id=>document.getElementById(id),fmt=v=>Number(v||0).toLocaleString('ko-KR');
 const clock=v=>{if(!v)return '—';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});};
-function render(d){
+function normalize(d){
+ if(d.requestedHouseholds==null&&d.registrations!=null){
+  return {...d,requestedHouseholds:d.registrations,requestedPeople:d.expectedPeople,attendedHouseholds:d.checkedRegistrations,attendedPeople:d.checkedPeople,totalAttendedHouseholds:d.checkedRegistrations,totalAttendedPeople:d.checkedPeople,unregisteredTokens:d.invalidScans,unregisteredScans:d.invalidScans,peopleDifference:Math.max(0,(d.expectedPeople||0)-(d.checkedPeople||0)),householdDifference:Math.max(0,(d.registrations||0)-(d.checkedRegistrations||0)),status:d.lastScanAt?'정상':'—'};
+ }
+ return d;
+}
+function render(raw){
+ const d=normalize(raw);
  const ids=['requestedHouseholds','requestedPeople','attendedHouseholds','attendedPeople','totalAttendedHouseholds','totalAttendedPeople','unregisteredTokens','unregisteredScans','peopleDifference','householdDifference'];
  ids.forEach(id=>$(id).textContent=fmt(d[id]));
  const pr=d.requestedPeople?d.totalAttendedPeople/d.requestedPeople*100:0,hr=d.requestedHouseholds?d.totalAttendedHouseholds/d.requestedHouseholds*100:0;
