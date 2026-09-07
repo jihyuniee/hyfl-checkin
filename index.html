@@ -110,22 +110,6 @@
       letter-spacing: 0.06em;
       font-variant-numeric: tabular-nums;
     }
-    .admin-btn {
-      flex: 0 0 auto;
-      min-height: 44px;
-      padding: 0 15px;
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 12px;
-      background: rgba(255,255,255,.09);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .admin-btn:active { transform: scale(.97); background: rgba(255,255,255,.16); }
 
     /* Section title */
     .section-label {
@@ -284,6 +268,14 @@
       color: var(--c-text-mute);
       font-variant-numeric: tabular-nums;
     }
+    .sync-status {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c-text-mute);
+      white-space: nowrap;
+    }
+    .sync-status.ok { color: #86efac; }
+    .sync-status.error { color: #fca5a5; }
 
     /* ============== RIGHT PANEL (CAMERA) ============== */
     .scanner {
@@ -657,7 +649,6 @@
           <div class="brand-name" id="brandName">한영외국어고등학교</div>
           <div class="brand-event" id="brandEvent">2027학년도 2차 입학설명회</div>
         </div>
-        <a class="admin-btn" href="dashboard.html" target="_blank" rel="noopener">관리자</a>
       </header>
 
       <div class="section-label">
@@ -707,6 +698,7 @@
             <span class="stat-value" id="cntCheckedIn">0</span>
           </div>
         </div>
+        <div class="sync-status" id="syncStatus">서버 확인 중</div>
         <div class="clock" id="clock">--:--</div>
       </footer>
     </aside>
@@ -812,6 +804,7 @@
     const overlayMeta  = $('overlayMeta');
     const resetBarFill = $('resetBarFill');
     const cntCheckedIn = $('cntCheckedIn');
+    const syncStatus   = $('syncStatus');
     const clockEl      = $('clock');
     const selectedCountEl = $('selectedCount');
     const cameraFrame  = $('cameraFrame');
@@ -834,10 +827,16 @@
 
     /* ============ CONFIG (Production) ============ */
     const API           = 'https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
-    const COOLDOWN_MS   = 500;
-    const NEXT_DELAY_MS = 3000;
+    const COOLDOWN_MS   = 400;
+    const NEXT_DELAY_MS = 1800;
     const IDEAL_W = 1920, IDEAL_H = 1080;
     const ROI_SCALES = [0.45, 0.65, 0.80];
+    const DECODE_INTERVAL_MS = 110;
+    const MAX_DECODE_SIDE = 900;
+    const EVENT_KEY = 'hyfl:2027-admission-2';
+    const OUTBOX_KEY = EVENT_KEY + ':outbox';
+    const PROCESSED_KEY = EVENT_KEY + ':processed';
+    const DEVICE_KEY = 'hyfl:scanner-device-id';
 
     /* ============ STATE ============ */
     let stream = null;
@@ -852,14 +851,80 @@
     let roiIdx = 0;
     let wakeLock = null;
     let audioCtx = null;
-    // 같은 패드·같은 실행 중 재스캔은 서버 조회 없이 즉시 감지한다.
-    const processedTokens = new Set();
+    let flushing = false;
+    let retryTimer = null;
+    let serverReachable = navigator.onLine;
+    let lastDecodeAt = 0;
+    let detectorInFlight = false;
+
+    function readJson(key, fallback) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || 'null');
+        return value == null ? fallback : value;
+      } catch (_) { return fallback; }
+    }
+    function writeJson(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+      catch (_) { return false; }
+    }
+    function makeId(prefix) {
+      if (window.crypto && crypto.randomUUID) return prefix + crypto.randomUUID();
+      return prefix + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 11);
+    }
+    let deviceId = '';
+    try { deviceId = localStorage.getItem(DEVICE_KEY) || ''; } catch (_) {}
+    if (!deviceId) {
+      deviceId = makeId('ipad-').slice(0, 30);
+      try { localStorage.setItem(DEVICE_KEY, deviceId); } catch (_) {}
+    }
+    let outbox = readJson(OUTBOX_KEY, []);
+    if (!Array.isArray(outbox)) outbox = [];
+    const savedTokens = readJson(PROCESSED_KEY, []);
+    const processedTokens = new Set(Array.isArray(savedTokens) ? savedTokens : []);
+
+    if (new URLSearchParams(location.search).get('resetScanner') === '1') {
+      outbox = [];
+      processedTokens.clear();
+      writeJson(OUTBOX_KEY, outbox);
+      writeJson(PROCESSED_KEY, []);
+      history.replaceState(null, '', location.pathname);
+    }
 
     let stats = { checkedIn: 0, total: 1000 };
     function renderStats() {
       cntCheckedIn.textContent = stats.checkedIn.toLocaleString('ko-KR');
     }
     renderStats();
+
+    function setSyncStatus(text, ok) {
+      syncStatus.textContent = text;
+      syncStatus.className = 'sync-status ' + (ok === true ? 'ok' : ok === false ? 'error' : '');
+    }
+
+    function renderSyncStatus() {
+      if (!navigator.onLine) return setSyncStatus(`오프라인 · ${outbox.length}건 보관`, false);
+      if (outbox.length) return setSyncStatus(`전송 대기 ${outbox.length}건`, null);
+      setSyncStatus(serverReachable ? '전송 정상' : '서버 연결 확인', serverReachable);
+    }
+
+    async function refreshLiveStats() {
+      try {
+        const response = await fetch(`${API}?action=dashboard&_=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('dashboard HTTP ' + response.status);
+        const data = await response.json();
+        if (!data || !data.ok) throw new Error('dashboard response');
+        stats.checkedIn = Number(data.totalAttendedPeople ?? data.checkedPeople ?? data.attendedPeople) || 0;
+        stats.total = Number(data.requestedPeople ?? data.expectedPeople) || stats.total;
+        renderStats();
+        serverReachable = true;
+        renderSyncStatus();
+      } catch (_) {
+        serverReachable = false;
+        renderSyncStatus();
+      }
+    }
+    refreshLiveStats();
+    setInterval(refreshLiveStats, 12000);
 
     /* ============ WAKE LOCK ============ */
     async function requestWakeLock() {
@@ -971,35 +1036,82 @@
       return text;
     }
 
-    /* ============ SERVER (sendBeacon → fetch keepalive fallback) ============ */
-    function sendAsync(token, count) {
-      const payload = { token, count, ua: (navigator.userAgent || '').slice(0, 200) };
-      if (navigator.sendBeacon) {
-        const ok = navigator.sendBeacon(API, new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=UTF-8' }));
-        if (ok) return;
-      }
+    /* ============ DURABLE OUTBOX (화면은 즉시 통과, 전송은 재시도) ============ */
+    async function postCheckin(payload) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
       try {
-        fetch(API, {
-          method: 'POST', keepalive: true, mode: 'cors', credentials: 'omit',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const response = await fetch(API, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'omit',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
         });
-      } catch(_) {}
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        if (!result || !result.ok) throw new Error((result && result.msg) || 'save failed');
+        return result;
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
-    /* ============ OPTIMISTIC CHECK-IN ============ */
+    function saveOutbox() { writeJson(OUTBOX_KEY, outbox); }
+    function saveProcessed() {
+      writeJson(PROCESSED_KEY, Array.from(processedTokens).slice(-1500));
+    }
+    function scheduleRetry(ms) {
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = setTimeout(() => { retryTimer = null; flushOutbox(); }, ms);
+    }
+    async function flushOutbox() {
+      if (flushing || !navigator.onLine || !outbox.length) return renderSyncStatus();
+      flushing = true;
+      renderSyncStatus();
+      try {
+        while (outbox.length && navigator.onLine) {
+          await postCheckin(outbox[0]);
+          outbox.shift();
+          saveOutbox();
+          serverReachable = true;
+          renderSyncStatus();
+        }
+        if (!outbox.length) setTimeout(refreshLiveStats, 700);
+      } catch (error) {
+        console.warn('check-in queued for retry', error);
+        serverReachable = false;
+        scheduleRetry(3000);
+      } finally {
+        flushing = false;
+        renderSyncStatus();
+      }
+    }
+    function enqueueCheckin(token, count) {
+      outbox.push({
+        scanId: makeId('scan-'), token, count, deviceId,
+        ua: (navigator.userAgent || '').slice(0, 200),
+        clientAt: new Date().toISOString()
+      });
+      saveOutbox();
+      renderSyncStatus();
+      flushOutbox();
+    }
+
     function handleSuccess(token) {
       const count = selectedCount;
       processedTokens.add(token);
+      saveProcessed();
       stats.checkedIn = Math.min(stats.total, stats.checkedIn + count);
       renderStats();
-      sendAsync(token, count);
+      enqueueCheckin(token, count);
       successChime();
       if (navigator.vibrate) navigator.vibrate(40);
       const shortCode = token.length > 8 ? token.slice(-6) : token;
       showOverlay('success', '체크인이 완료되었습니다.', '다음 신청 학부모님을 안내해 주세요.', [
-        `${count}명 입장`,
-        shortCode
+        `${count}명 입장`, shortCode
       ]);
       startCooldown(NEXT_DELAY_MS);
     }
@@ -1020,17 +1132,13 @@
         beep(620, 220, 'sine', 0.24);
         if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
         const shortCode = token.length > 8 ? token.slice(-6) : token;
-        showOverlay('duplicate', '이미 처리된 QR입니다.', '이 패드에서 앞서 체크인되었습니다.', [
-          shortCode
-        ]);
-        startCooldown(2200);
+        showOverlay('duplicate', '이미 처리된 QR입니다.', '이 패드에서 앞서 체크인되었습니다.', [shortCode]);
+        startCooldown(1600);
         return;
       }
 
-      // 서버 응답을 기다리지 않고 즉시 통과시킨 뒤 로그를 비동기로 기록한다.
-      setTimeout(() => {
-        handleSuccess(token);
-      }, 280);
+      // 서버 응답이나 네트워크 상태를 기다리지 않고 즉시 입장시킨다.
+      setTimeout(() => handleSuccess(token), 120);
     }
 
     /* ============ CAMERA ============ */
@@ -1096,25 +1204,31 @@
       const drawFrame = (scale) => {
         const w = video.videoWidth || 0, h = video.videoHeight || 0;
         if (!w || !h) return null;
-        const side = Math.floor(Math.min(w, h) * scale);
-        const x = Math.floor((w - side) / 2);
-        const y = Math.floor((h - side) / 2);
-        canvas.width = side; canvas.height = side;
-        ctx.drawImage(video, x, y, side, side, 0, 0, side, side);
-        return { side };
+        const sourceSide = Math.floor(Math.min(w, h) * scale);
+        const x = Math.floor((w - sourceSide) / 2);
+        const y = Math.floor((h - sourceSide) / 2);
+        const decodeSide = Math.min(sourceSide, MAX_DECODE_SIDE);
+        if (canvas.width !== decodeSide || canvas.height !== decodeSide) {
+          canvas.width = decodeSide; canvas.height = decodeSide;
+        }
+        ctx.drawImage(video, x, y, sourceSide, sourceSide, 0, 0, decodeSide, decodeSide);
+        return { side: decodeSide };
       };
 
       const tick = () => {
         if (!scanning) return;
         const now = Date.now();
-        if (video.readyState === video.HAVE_ENOUGH_DATA && now >= blockUntil && !busy) {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && now >= blockUntil && !busy &&
+            now - lastDecodeAt >= DECODE_INTERVAL_MS && !detectorInFlight) {
+          lastDecodeAt = now;
           const scale = ROI_SCALES[roiIdx % ROI_SCALES.length]; roiIdx++;
           const roi = drawFrame(scale);
           if (roi) {
             if (detector) {
+              detectorInFlight = true;
               detector.detect(canvas).then(codes => {
                 if (codes && codes.length) processCode((codes[0].rawValue || '').trim());
-              }).catch(()=>{});
+              }).catch(()=>{}).finally(() => { detectorInFlight = false; });
             } else if (window.jsQR) {
               const img = ctx.getImageData(0, 0, roi.side, roi.side);
               const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
@@ -1138,6 +1252,13 @@
     /* ============ WIRE UP ============ */
     startBtn.addEventListener('click', startCamera);
     startBtn.addEventListener('touchend', e => { e.preventDefault(); startCamera(); }, { passive: false });
+    window.addEventListener('online', () => { serverReachable = true; renderSyncStatus(); flushOutbox(); });
+    window.addEventListener('offline', renderSyncStatus);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') flushOutbox();
+    });
+    renderSyncStatus();
+    flushOutbox();
 
     /* ============ SIM HOOKS (Tweaks panel) ============ */
     window.__qrSim = {
@@ -1149,8 +1270,14 @@
       setBrand: (n, e) => { if (n) $('brandName').textContent = n; if (e) $('brandEvent').textContent = e; },
       setTotal: (t) => { stats.total = t; renderStats(); }
     };
+    window.__checkinDiagnostics = {
+      pending: () => outbox.length,
+      deviceId: () => deviceId,
+      flush: flushOutbox
+    };
   })();
   </script>
+
 
 </body>
 </html>
