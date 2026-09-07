@@ -268,6 +268,14 @@
       color: var(--c-text-mute);
       font-variant-numeric: tabular-nums;
     }
+    .sync-status {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c-text-mute);
+      white-space: nowrap;
+    }
+    .sync-status.ok { color: #86efac; }
+    .sync-status.error { color: #fca5a5; }
 
     /* ============== RIGHT PANEL (CAMERA) ============== */
     .scanner {
@@ -639,7 +647,7 @@
       <header class="panel-header">
         <div class="brand">
           <div class="brand-name" id="brandName">한영외국어고등학교</div>
-          <div class="brand-event" id="brandEvent">입학설명회</div>
+          <div class="brand-event" id="brandEvent">2027학년도 2차 입학설명회</div>
         </div>
       </header>
 
@@ -690,6 +698,7 @@
             <span class="stat-value" id="cntCheckedIn">0</span>
           </div>
         </div>
+        <div class="sync-status" id="syncStatus">서버 확인 중</div>
         <div class="clock" id="clock">--:--</div>
       </footer>
     </aside>
@@ -795,6 +804,7 @@
     const overlayMeta  = $('overlayMeta');
     const resetBarFill = $('resetBarFill');
     const cntCheckedIn = $('cntCheckedIn');
+    const syncStatus   = $('syncStatus');
     const clockEl      = $('clock');
     const selectedCountEl = $('selectedCount');
     const cameraFrame  = $('cameraFrame');
@@ -841,6 +851,28 @@
       cntCheckedIn.textContent = stats.checkedIn.toLocaleString('ko-KR');
     }
     renderStats();
+
+    function setSyncStatus(text, ok) {
+      syncStatus.textContent = text;
+      syncStatus.className = 'sync-status ' + (ok === true ? 'ok' : ok === false ? 'error' : '');
+    }
+
+    async function refreshLiveStats() {
+      try {
+        const response = await fetch(`${API}?action=dashboard&_=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('dashboard HTTP ' + response.status);
+        const data = await response.json();
+        if (!data || !data.ok) throw new Error('dashboard response');
+        stats.checkedIn = Number(data.checkedPeople) || 0;
+        stats.total = Number(data.expectedPeople) || stats.total;
+        renderStats();
+        setSyncStatus('실시간 연결', true);
+      } catch (_) {
+        setSyncStatus('연결 확인 필요', false);
+      }
+    }
+    refreshLiveStats();
+    setInterval(refreshLiveStats, 10000);
 
     /* ============ WAKE LOCK ============ */
     async function requestWakeLock() {
@@ -952,39 +984,66 @@
       return text;
     }
 
-    /* ============ SERVER (sendBeacon → fetch keepalive fallback) ============ */
-    function sendAsync(token, count) {
+    /* ============ SERVER (응답 확인 후 화면에 결과 표시) ============ */
+    async function sendCheckin(token, count) {
       const payload = { token, count, ua: (navigator.userAgent || '').slice(0, 200) };
-      if (navigator.sendBeacon) {
-        const ok = navigator.sendBeacon(API, new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=UTF-8' }));
-        if (ok) return;
-      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
       try {
-        fetch(API, {
-          method: 'POST', keepalive: true, mode: 'cors', credentials: 'omit',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const response = await fetch(API, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'omit',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
         });
-      } catch(_) {}
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return await response.json();
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
-    /* ============ OPTIMISTIC CHECK-IN ============ */
-    function handleSuccess(token) {
-      const count = selectedCount;
-      stats.checkedIn = Math.min(stats.total, stats.checkedIn + count);
-      renderStats();
-      sendAsync(token, count);
+    function handleSuccess(token, result, count) {
       successChime();
       if (navigator.vibrate) navigator.vibrate(40);
       const shortCode = token.length > 8 ? token.slice(-6) : token;
+      const pills = [];
+      if (result.name) pills.push(result.name);
+      pills.push(`${count}명 입장`);
+      if (result.expected) pills.push(`신청 ${result.expected}명`);
+      pills.push(shortCode);
       showOverlay('success', '체크인이 완료되었습니다.', '다음 신청 학부모님을 안내해 주세요.', [
-        `${count}명 입장`,
-        shortCode
+        ...pills
       ]);
+      setSyncStatus('기록 완료', true);
+      setTimeout(refreshLiveStats, 700);
       startCooldown(NEXT_DELAY_MS);
     }
 
-    function processCode(text) {
+    function handleServerResult(token, result, count) {
+      if (result && result.ok && (!result.status || result.status === 'success')) {
+        handleSuccess(token, result, Number(result.count) || count);
+        return;
+      }
+      if (result && result.status === 'duplicate') {
+        const pills = [];
+        if (result.name) pills.push(result.name);
+        if (result.count) pills.push(`${result.count}명 입장 기록`);
+        showOverlay('duplicate', '이미 체크인되었습니다.', '기존 입장 기록을 확인했습니다.', pills);
+        setSyncStatus('중복 확인', true);
+        startCooldown(NEXT_DELAY_MS);
+        return;
+      }
+      const message = result && result.msg ? result.msg : '등록되지 않은 QR입니다.';
+      showOverlay('error', '체크인할 수 없습니다.', message, []);
+      setSyncStatus('기록 안 됨', false);
+      startCooldown(4000);
+    }
+
+    async function processCode(text) {
       const now = Date.now();
       if (now - lastScanAt < COOLDOWN_MS) return;
       if (now < blockUntil) return;
@@ -996,10 +1055,17 @@
       busy = true;
       setState(STATE.SCANNING);
 
-      // Brief scanning visual; Apps Script returns no usable response, so optimistic
-      setTimeout(() => {
-        handleSuccess(token);
-      }, 280);
+      const count = selectedCount;
+      setSyncStatus('서버 확인 중', null);
+      try {
+        const result = await sendCheckin(token, count);
+        handleServerResult(token, result, count);
+      } catch (error) {
+        console.warn('check-in error', error);
+        showOverlay('error', '통신 오류입니다.', '기록 여부를 확인한 뒤 다시 스캔해 주세요.', []);
+        setSyncStatus('연결 오류', false);
+        startCooldown(5000);
+      }
     }
 
     /* ============ CAMERA ============ */
@@ -1121,6 +1187,8 @@
   })();
   </script>
 
+  <!-- 개발용 미리보기 패널은 현장 운영에서 비활성화 -->
+  <template id="disabled-tweaks">
   <!-- ============ TWEAKS PANEL ============ -->
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -1168,6 +1236,7 @@
 
     ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<TweaksApp />);
   </script>
+  </template>
 
 </body>
 </html>
