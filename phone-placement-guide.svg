@@ -1,22 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="297mm" height="210mm" viewBox="0 0 1123 794">
   <style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');</style>
-  <defs>
-    <linearGradient id="mat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#77766f"/><stop offset="1" stop-color="#5f605c"/></linearGradient>
-    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#30312f" flood-opacity=".28"/></filter>
-  </defs>
-  <rect width="1123" height="794" rx="28" fill="url(#mat)"/>
-  <rect x="22" y="22" width="1079" height="750" rx="22" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="2"/>
+  <defs><filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#23364d" flood-opacity=".12"/></filter></defs>
+  <rect width="1123" height="794" fill="#ffffff"/>
+  <rect x="22" y="22" width="1079" height="750" rx="24" fill="none" stroke="#e3e9f1" stroke-width="2"/>
+  <text x="562" y="75" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="750" fill="#8a98aa">한영외국어고등학교 입학설명회</text>
+
   <g filter="url(#shadow)">
-    <rect x="96" y="82" width="330" height="630" rx="50" fill="#696b67" stroke="#e6e5df" stroke-width="3" stroke-dasharray="9 8"/>
-    <rect x="116" y="102" width="290" height="590" rx="39" fill="#62645f" stroke="#ffffff" stroke-opacity=".22" stroke-width="2"/>
+    <rect x="106" y="104" width="330" height="610" rx="52" fill="#fbfcfe" stroke="#2e83dc" stroke-width="4" stroke-dasharray="12 10"/>
   </g>
-  <rect x="212" y="120" width="98" height="12" rx="6" fill="#deded8" fill-opacity=".42"/>
-  <path d="M261 171v38m-14-14 14 16 14-16" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="261" y="248" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="25" font-weight="800" fill="#ffffff">휴대폰 놓는 곳</text>
-  <text x="261" y="281" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="17" font-weight="600" fill="#e2e4e0">QR 화면이 위로</text>
-  <g transform="translate(176 345)">
-    <rect width="170" height="170" rx="15" fill="#f3f4ef" fill-opacity=".92"/>
-    <g fill="#303b48">
+  <rect x="130" y="128" width="282" height="562" rx="39" fill="#f5f8fc" stroke="#d6e0ec" stroke-width="2"/>
+  <rect x="222" y="146" width="98" height="12" rx="6" fill="#c5d0dc"/>
+  <path d="M271 192v42m-15-15 15 17 15-17" fill="none" stroke="#2e83dc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="271" y="278" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="850" fill="#193653">휴대폰 놓는 곳</text>
+  <text x="271" y="314" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="18" font-weight="650" fill="#687b90">QR 화면이 위로</text>
+  <g transform="translate(186 366)">
+    <rect width="170" height="170" rx="16" fill="#ffffff" stroke="#2e83dc" stroke-width="4"/>
+    <g fill="#17314d">
       <path d="M17 17h48v48H17zm11 11v26h26V28zM105 17h48v48h-48zm11 11v26h26V28zM17 105h48v48H17zm11 11v26h26v-26z"/>
       <rect x="80" y="80" width="14" height="14"/><rect x="103" y="80" width="14" height="14"/><rect x="126" y="80" width="14" height="14"/>
       <rect x="80" y="103" width="14" height="14"/><rect x="126" y="103" width="27" height="14"/>
@@ -24,18 +23,23 @@
       <rect x="80" y="149" width="37" height="4"/><rect x="134" y="149" width="19" height="4"/>
     </g>
   </g>
-  <text x="261" y="560" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="17" font-weight="650" fill="#f3f3ef">점선 안에 맞춰 놓아주세요</text>
-  <circle cx="261" cy="630" r="24" fill="none" stroke="#f1f2ed" stroke-width="3"/>
-  <path d="M250 630l8 8 16-19" fill="none" stroke="#f1f2ed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="500" y="117" width="527" height="460" rx="26" fill="#63645f" fill-opacity=".56" stroke="#e8e7e1" stroke-width="3" stroke-dasharray="9 8"/>
-  <text x="764" y="230" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="650" fill="#e8e9e4">QR 화면이 보이도록</text>
-  <text x="764" y="283" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="38" font-weight="850" fill="#ffffff">휴대폰을 올려주세요</text>
-  <path d="M764 325v72m-24-26 24 28 24-28" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="764" y="459" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="650" fill="#e8e9e4">인식 완료 화면이 나올 때까지</text>
-  <text x="764" y="493" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="650" fill="#e8e9e4">잠시 기다려 주세요</text>
-  <rect x="500" y="608" width="527" height="104" rx="22" fill="#454b50" fill-opacity=".76"/>
-  <circle cx="551" cy="660" r="20" fill="#ffffff" fill-opacity=".13"/>
-  <path d="M551 648v24m-12-12h24" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  <text x="595" y="653" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#ffffff">잘 인식되지 않으면</text>
-  <text x="595" y="682" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="17" font-weight="600" fill="#e0e2df">휴대폰 화면 밝기를 높여주세요</text>
+  <text x="271" y="585" text-anchor="middle" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="17" font-weight="700" fill="#52677e">파란 점선 안에 맞춰 놓아주세요</text>
+  <circle cx="271" cy="643" r="23" fill="#2e83dc"/>
+  <path d="M260 643l8 8 16-19" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g font-family="Pretendard, Apple SD Gothic Neo, sans-serif">
+    <text x="545" y="215" font-size="21" font-weight="700" fill="#7790aa">QR 화면이 보이도록</text>
+    <text x="545" y="273" font-size="42" font-weight="900" fill="#172d46">휴대폰을 올려주세요</text>
+    <line x1="545" y1="311" x2="1010" y2="311" stroke="#e4eaf1" stroke-width="2"/>
+    <circle cx="571" cy="365" r="22" fill="#eaf3fd"/><text x="571" y="373" text-anchor="middle" font-size="19" font-weight="850" fill="#2e83dc">1</text>
+    <text x="612" y="372" font-size="21" font-weight="750" fill="#314a64">입장 인원을 선택해 주세요</text>
+    <circle cx="571" cy="431" r="22" fill="#eaf3fd"/><text x="571" y="439" text-anchor="middle" font-size="19" font-weight="850" fill="#2e83dc">2</text>
+    <text x="612" y="438" font-size="21" font-weight="750" fill="#314a64">휴대폰을 파란 점선 안에 놓아주세요</text>
+    <circle cx="571" cy="497" r="22" fill="#eaf3fd"/><text x="571" y="505" text-anchor="middle" font-size="19" font-weight="850" fill="#2e83dc">3</text>
+    <text x="612" y="504" font-size="21" font-weight="750" fill="#314a64">인식 완료 화면까지 잠시 기다려 주세요</text>
+  </g>
+  <rect x="535" y="581" width="488" height="104" rx="20" fill="#f5f8fc" stroke="#e1e8f0" stroke-width="2"/>
+  <circle cx="579" cy="633" r="19" fill="#2e83dc"/><path d="M579 621v24m-12-12h24" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <text x="616" y="625" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="19" font-weight="800" fill="#314a64">잘 인식되지 않으면</text>
+  <text x="616" y="655" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="17" font-weight="600" fill="#75879a">휴대폰 화면 밝기를 높여주세요</text>
 </svg>
