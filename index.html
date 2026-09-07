@@ -835,6 +835,8 @@
     let roiIdx = 0;
     let wakeLock = null;
     let audioCtx = null;
+    // 같은 패드·같은 실행 중 재스캔은 서버 조회 없이 즉시 감지한다.
+    const processedTokens = new Set();
 
     let stats = { checkedIn: 0, total: 1000 };
     function renderStats() {
@@ -971,6 +973,7 @@
     /* ============ OPTIMISTIC CHECK-IN ============ */
     function handleSuccess(token) {
       const count = selectedCount;
+      processedTokens.add(token);
       stats.checkedIn = Math.min(stats.total, stats.checkedIn + count);
       renderStats();
       sendAsync(token, count);
@@ -996,7 +999,18 @@
       busy = true;
       setState(STATE.SCANNING);
 
-      // Brief scanning visual; Apps Script returns no usable response, so optimistic
+      if (processedTokens.has(token)) {
+        beep(620, 220, 'sine', 0.24);
+        if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+        const shortCode = token.length > 8 ? token.slice(-6) : token;
+        showOverlay('duplicate', '이미 처리된 QR입니다.', '이 패드에서 앞서 체크인되었습니다.', [
+          shortCode
+        ]);
+        startCooldown(2200);
+        return;
+      }
+
+      // 서버 응답을 기다리지 않고 즉시 통과시킨 뒤 로그를 비동기로 기록한다.
       setTimeout(() => {
         handleSuccess(token);
       }, 280);
