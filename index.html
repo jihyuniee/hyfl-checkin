@@ -276,6 +276,19 @@
     }
     .sync-status.ok { color: #86efac; }
     .sync-status.error { color: #fca5a5; }
+    .dashboard-link {
+      min-height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 16px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      color: #fff;
+      font-size: 13px; font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dashboard-link:active { transform: scale(.97); }
 
     /* ============== RIGHT PANEL (CAMERA) ============== */
     .scanner {
@@ -303,7 +316,7 @@
       /* 센서 화면 전체를 보여 주어 거치대가 더 멀리 보이게 한다. */
       object-fit: contain;
       background: #0a0a0a;
-      transform: rotate(90deg) scale(0.94);
+      transform: scale(0.94);
       transform-origin: center;
     }
 
@@ -345,11 +358,23 @@
     /* Guide box */
     .guide {
       position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(76%, 520px);
+      right: 7%; bottom: 14%;
+      width: min(68%, 480px);
       aspect-ratio: 1;
       pointer-events: none;
+    }
+    .guide::after {
+      content: "휴대폰 QR 위치";
+      position: absolute;
+      left: 50%; top: 18px;
+      transform: translateX(-50%);
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.66);
+      color: #fff;
+      font-size: clamp(13px, 1.3vw, 17px);
+      font-weight: 800;
+      white-space: nowrap;
     }
     .guide::before {
       content: "";
@@ -386,11 +411,32 @@
     .prompt {
       position: absolute;
       left: 50%;
-      bottom: clamp(16px, 4vh, 36px);
+      top: clamp(14px, 2vh, 22px);
       transform: translateX(-50%);
       width: min(92%, 560px);
       text-align: center;
       pointer-events: none;
+    }
+
+    .camera-position {
+      position: absolute;
+      right: 12px; bottom: 10px;
+      z-index: 8;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.82);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      pointer-events: none;
+    }
+    .camera-position-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 0 5px rgba(56,189,248,.22);
     }
     .prompt-inner {
       display: inline-block;
@@ -662,6 +708,7 @@
           </div>
         </div>
         <div class="sync-status" id="syncStatus">서버 확인 중</div>
+        <a class="dashboard-link" href="dashboard.html" aria-label="실시간 현황 대시보드 열기">실시간 현황</a>
         <div class="clock" id="clock">--:--</div>
       </footer>
     </aside>
@@ -672,6 +719,9 @@
       <div class="camera-frame" id="cameraFrame">
         <video class="camera-video" id="camera" autoplay playsinline muted></video>
         <div class="camera-vignette"></div>
+        <div class="camera-position" aria-hidden="true">
+          <span>후면 카메라</span><span class="camera-position-dot"></span>
+        </div>
 
         <!-- Idle illustration -->
         <div class="idle-art" aria-hidden="true">
