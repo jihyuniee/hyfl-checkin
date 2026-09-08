@@ -302,8 +302,6 @@
     .camera-frame {
       position: relative;
       width: 100%; height: 100%;
-      max-width: min(100%, calc(100vh - 80px));
-      aspect-ratio: 1 / 1;
       border-radius: var(--r-lg);
       overflow: hidden;
       background: #0a0a0a;
@@ -313,11 +311,9 @@
     .camera-video {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      /* 센서 화면 전체를 보여 주어 거치대가 더 멀리 보이게 한다. */
-      object-fit: contain;
+      /* 화면을 꽉 채워 실제 QR 위치와 안내선이 어긋나지 않게 한다. */
+      object-fit: cover;
       background: #0a0a0a;
-      transform: scale(0.94);
-      transform-origin: center;
     }
 
     /* Idle illustration — when camera not started yet */
@@ -351,15 +347,16 @@
     /* Vignette / focus dim */
     .camera-vignette {
       position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.5) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,.22), transparent 22%, transparent 78%, rgba(0,0,0,.26));
       pointer-events: none;
     }
 
     /* Guide box */
     .guide {
       position: absolute;
-      right: 7%; bottom: 14%;
-      width: min(68%, 480px);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(76%, 540px);
       aspect-ratio: 1;
       pointer-events: none;
     }
@@ -418,26 +415,6 @@
       pointer-events: none;
     }
 
-    .camera-position {
-      position: absolute;
-      right: 12px; bottom: 10px;
-      z-index: 8;
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 11px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.82);
-      border: 1px solid rgba(255,255,255,.2);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      pointer-events: none;
-    }
-    .camera-position-dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: #38bdf8;
-      box-shadow: 0 0 0 5px rgba(56,189,248,.22);
-    }
     .prompt-inner {
       display: inline-block;
       padding: 12px 24px;
@@ -694,8 +671,8 @@
             </svg>
           </div>
           <div class="guidance-text">
-            <b>인원을 선택한 뒤</b> 휴대폰을 iPad 오른쪽 표시선에 올려두면<br>
-            카메라가 QR 코드를 자동으로 인식합니다.
+            <b>인원을 선택한 뒤</b> 오른쪽 카메라 화면을 보면서<br>
+            휴대폰 QR을 흰 모서리 가운데에 맞춰주세요.
           </div>
         </div>
       </section>
@@ -719,9 +696,6 @@
       <div class="camera-frame" id="cameraFrame">
         <video class="camera-video" id="camera" autoplay playsinline muted></video>
         <div class="camera-vignette"></div>
-        <div class="camera-position" aria-hidden="true">
-          <span>후면 카메라</span><span class="camera-position-dot"></span>
-        </div>
 
         <!-- Idle illustration -->
         <div class="idle-art" aria-hidden="true">
@@ -751,8 +725,8 @@
         <!-- Prompt -->
         <div class="prompt" id="prompt">
           <div class="prompt-inner">
-            <div class="prompt-title" id="promptTitle">QR 코드를 사각형 안에 비춰주세요</div>
-            <div class="prompt-sub"   id="promptSub">휴대폰을 iPad 오른쪽 표시선에 올려두면 자동으로 인식됩니다</div>
+            <div class="prompt-title" id="promptTitle">휴대폰 QR을 가운데에 맞춰주세요</div>
+            <div class="prompt-sub"   id="promptSub">화면을 보면서 QR 전체가 흰 모서리 안에 들어오게 해주세요</div>
           </div>
         </div>
 
@@ -820,7 +794,7 @@
     };
 
     const PROMPTS = {
-      ready:    { title: 'QR 코드를 사각형 안에 비춰주세요',  sub: '휴대폰을 iPad 오른쪽 표시선에 올려두면 자동으로 인식됩니다' },
+      ready:    { title: '휴대폰 QR을 가운데에 맞춰주세요',  sub: 'QR 전체가 흰 모서리 안에 들어오면 자동으로 인식됩니다' },
       scanning: { title: '확인 중입니다…',                   sub: '잠시만 기다려주세요' }
     };
 
