@@ -810,9 +810,9 @@
     const NEXT_DELAY_MS = 1800;
     const IDEAL_W = 1920, IDEAL_H = 1080;
     // 가까이/멀리 놓인 QR을 번갈아 검사한다. 마지막 1.0은 센서 전체 화면이다.
-    const ROI_SCALES = [0.62, 0.78, 0.92, 1.0];
-    const DECODE_INTERVAL_MS = 90;
-    const MAX_DECODE_SIDE = 960;
+    const ROI_SCALES = [0.58, 0.74, 0.88, 1.0];
+    const DECODE_INTERVAL_MS = 85;
+    const MAX_DECODE_SIDE = 1100;
     const EVENT_KEY = 'hyfl:2027-admission-2';
     const OUTBOX_KEY = EVENT_KEY + ':outbox';
     const PROCESSED_KEY = EVENT_KEY + ':processed';
@@ -924,13 +924,21 @@
       if (!audioCtx) return;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = type || 'sine'; o.frequency.value = freq || 1000;
-      g.gain.value = vol != null ? vol : 0.28;
-      o.connect(g); g.connect(audioCtx.destination); o.start();
-      setTimeout(() => { try { o.stop(); } catch(_) {} }, ms || 140);
+      const level = vol != null ? vol : 0.45;
+      const duration = ms || 180;
+      const now = audioCtx.currentTime;
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.exponentialRampToValueAtTime(level, now + 0.015);
+      g.gain.setValueAtTime(level, now + Math.max(0.02, duration / 1000 - 0.06));
+      g.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+      o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + duration / 1000 + 0.02);
     }
     function successChime() {
-      beep(1100, 120, 'sine', 0.28);
-      setTimeout(() => beep(1500, 140, 'sine', 0.28), 80);
+      // 행사장에서도 들리도록 길고 분명한 3단계 완료음
+      try { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); } catch (_) {}
+      beep(880, 210, 'square', 0.52);
+      setTimeout(() => beep(1175, 230, 'square', 0.56), 180);
+      setTimeout(() => beep(1568, 320, 'square', 0.60), 380);
     }
 
     /* ============ COUNT SELECTION ============ */
@@ -1165,10 +1173,10 @@
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-      const decodeWithJsQR = (side) => {
-        if (!window.jsQR || !side) return false;
+      const decodeWithJsQR = (width, height) => {
+        if (!window.jsQR || !width || !height) return false;
         try {
-          const img = ctx.getImageData(0, 0, side, side);
+          const img = ctx.getImageData(0, 0, width, height);
           const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
           if (code && code.data) {
             processCode(code.data.trim());
@@ -1181,15 +1189,19 @@
       const drawFrame = (scale) => {
         const w = video.videoWidth || 0, h = video.videoHeight || 0;
         if (!w || !h) return null;
-        const sourceSide = Math.floor(Math.min(w, h) * scale);
-        const x = Math.floor((w - sourceSide) / 2);
-        const y = Math.floor((h - sourceSide) / 2);
-        const decodeSide = Math.min(sourceSide, MAX_DECODE_SIDE);
-        if (canvas.width !== decodeSide || canvas.height !== decodeSide) {
-          canvas.width = decodeSide; canvas.height = decodeSide;
+        // 원본 비율을 유지한 채 중앙 확대 영역과 센서 전체를 번갈아 검사한다.
+        const sourceW = Math.max(1, Math.floor(w * scale));
+        const sourceH = Math.max(1, Math.floor(h * scale));
+        const x = Math.floor((w - sourceW) / 2);
+        const y = Math.floor((h - sourceH) / 2);
+        const ratio = Math.min(1, MAX_DECODE_SIDE / Math.max(sourceW, sourceH));
+        const decodeW = Math.max(1, Math.floor(sourceW * ratio));
+        const decodeH = Math.max(1, Math.floor(sourceH * ratio));
+        if (canvas.width !== decodeW || canvas.height !== decodeH) {
+          canvas.width = decodeW; canvas.height = decodeH;
         }
-        ctx.drawImage(video, x, y, sourceSide, sourceSide, 0, 0, decodeSide, decodeSide);
-        return { side: decodeSide };
+        ctx.drawImage(video, x, y, sourceW, sourceH, 0, 0, decodeW, decodeH);
+        return { width: decodeW, height: decodeH };
       };
 
       const tick = () => {
@@ -1208,12 +1220,12 @@
                   processCode((codes[0].rawValue || '').trim());
                 } else {
                   // 기기 기본 감지기가 놓친 프레임은 jsQR로 한 번 더 확인한다.
-                  decodeWithJsQR(roi.side);
+                  decodeWithJsQR(roi.width, roi.height);
                 }
-              }).catch(() => { decodeWithJsQR(roi.side); })
+              }).catch(() => { decodeWithJsQR(roi.width, roi.height); })
                 .finally(() => { detectorInFlight = false; });
             } else {
-              decodeWithJsQR(roi.side);
+              decodeWithJsQR(roi.width, roi.height);
             }
           }
         }
