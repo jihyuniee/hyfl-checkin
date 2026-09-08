@@ -287,7 +287,6 @@
       overflow: hidden;
     }
     .camera-frame {
-      --cam-zoom: 0.7;
       position: relative;
       width: 100%; height: 100%;
       max-width: min(100%, calc(100vh - 80px));
@@ -301,15 +300,11 @@
     .camera-video {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      object-fit: cover;
-      /* 거치 높이에 맞춰 0.7배로 고정 */
+      /* 센서 화면 전체를 보여 주어 거치대가 더 멀리 보이게 한다. */
+      object-fit: contain;
       background: #0a0a0a;
-      transform: scale(var(--cam-zoom));
+      transform: rotate(90deg) scale(0.94);
       transform-origin: center;
-    }
-    /* iPad Safari 후면 카메라가 거치 방향과 다르게 표시되는 현상 보정 */
-    .ipad-camera-rotated .camera-video {
-      transform: rotate(90deg) scale(var(--cam-zoom));
     }
 
     /* Idle illustration — when camera not started yet */
@@ -352,7 +347,7 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: min(64%, 460px);
+      width: min(76%, 520px);
       aspect-ratio: 1;
       pointer-events: none;
     }
@@ -653,7 +648,7 @@
             </svg>
           </div>
           <div class="guidance-text">
-            <b>인원을 선택한 뒤</b> 휴대폰을 정해진 자리에 올려두면<br>
+            <b>인원을 선택한 뒤</b> 휴대폰을 iPad 오른쪽 표시선에 올려두면<br>
             카메라가 QR 코드를 자동으로 인식합니다.
           </div>
         </div>
@@ -707,7 +702,7 @@
         <div class="prompt" id="prompt">
           <div class="prompt-inner">
             <div class="prompt-title" id="promptTitle">QR 코드를 사각형 안에 비춰주세요</div>
-            <div class="prompt-sub"   id="promptSub">휴대폰을 거치대에 올려두면 자동으로 인식됩니다</div>
+            <div class="prompt-sub"   id="promptSub">휴대폰을 iPad 오른쪽 표시선에 올려두면 자동으로 인식됩니다</div>
           </div>
         </div>
 
@@ -752,10 +747,6 @@
   (function () {
     'use strict';
 
-    const isIPad = /iPad/i.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIPad) document.documentElement.classList.add('ipad-camera-rotated');
-
     const $ = id => document.getElementById(id);
     const kiosk        = $('kiosk');
     const video        = $('camera');
@@ -779,7 +770,7 @@
     };
 
     const PROMPTS = {
-      ready:    { title: 'QR 코드를 사각형 안에 비춰주세요',  sub: '휴대폰을 거치대에 올려두면 자동으로 인식됩니다' },
+      ready:    { title: 'QR 코드를 사각형 안에 비춰주세요',  sub: '휴대폰을 iPad 오른쪽 표시선에 올려두면 자동으로 인식됩니다' },
       scanning: { title: '확인 중입니다…',                   sub: '잠시만 기다려주세요' }
     };
 
@@ -794,7 +785,7 @@
     const COOLDOWN_MS   = 400;
     const NEXT_DELAY_MS = 1800;
     const IDEAL_W = 1920, IDEAL_H = 1080;
-    const ROI_SCALES = [0.45, 0.65, 0.80];
+    const ROI_SCALES = [0.55, 0.75, 0.95];
     const DECODE_INTERVAL_MS = 110;
     const MAX_DECODE_SIDE = 900;
     const EVENT_KEY = 'hyfl:2027-admission-2';
