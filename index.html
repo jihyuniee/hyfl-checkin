@@ -809,9 +809,10 @@
     const COOLDOWN_MS   = 400;
     const NEXT_DELAY_MS = 1800;
     const IDEAL_W = 1920, IDEAL_H = 1080;
-    const ROI_SCALES = [0.55, 0.75, 0.95];
-    const DECODE_INTERVAL_MS = 110;
-    const MAX_DECODE_SIDE = 900;
+    // 가까이/멀리 놓인 QR을 번갈아 검사한다. 마지막 1.0은 센서 전체 화면이다.
+    const ROI_SCALES = [0.62, 0.78, 0.92, 1.0];
+    const DECODE_INTERVAL_MS = 90;
+    const MAX_DECODE_SIDE = 960;
     const EVENT_KEY = 'hyfl:2027-admission-2';
     const OUTBOX_KEY = EVENT_KEY + ':outbox';
     const PROCESSED_KEY = EVENT_KEY + ':processed';
@@ -1129,13 +1130,16 @@
         video.srcObject = stream;
         video.play().catch(() => setTimeout(() => video.play().catch(()=>{}), 200));
 
-        // Reset native zoom to 1× (rear cameras often default zoomed in)
+        // 후면 카메라를 1× 및 연속 자동초점으로 고정한다.
         try {
           stream.getVideoTracks().forEach(track => {
             const caps = track.getCapabilities ? track.getCapabilities() : {};
             if (caps.zoom) {
               const target = Math.min(caps.zoom.max, Math.max(caps.zoom.min, 1));
               track.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
+            }
+            if (caps.focusMode && Array.from(caps.focusMode).includes('continuous')) {
+              track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(()=>{});
             }
           });
         } catch(_) {}
@@ -1160,6 +1164,19 @@
       const detector = hasBD ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      const decodeWithJsQR = (side) => {
+        if (!window.jsQR || !side) return false;
+        try {
+          const img = ctx.getImageData(0, 0, side, side);
+          const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+          if (code && code.data) {
+            processCode(code.data.trim());
+            return true;
+          }
+        } catch (_) {}
+        return false;
+      };
 
       const drawFrame = (scale) => {
         const w = video.videoWidth || 0, h = video.videoHeight || 0;
@@ -1187,12 +1204,16 @@
             if (detector) {
               detectorInFlight = true;
               detector.detect(canvas).then(codes => {
-                if (codes && codes.length) processCode((codes[0].rawValue || '').trim());
-              }).catch(()=>{}).finally(() => { detectorInFlight = false; });
-            } else if (window.jsQR) {
-              const img = ctx.getImageData(0, 0, roi.side, roi.side);
-              const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-              if (code && code.data) processCode(code.data.trim());
+                if (codes && codes.length) {
+                  processCode((codes[0].rawValue || '').trim());
+                } else {
+                  // 기기 기본 감지기가 놓친 프레임은 jsQR로 한 번 더 확인한다.
+                  decodeWithJsQR(roi.side);
+                }
+              }).catch(() => { decodeWithJsQR(roi.side); })
+                .finally(() => { detectorInFlight = false; });
+            } else {
+              decodeWithJsQR(roi.side);
             }
           }
         }
