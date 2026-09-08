@@ -287,6 +287,7 @@
       overflow: hidden;
     }
     .camera-frame {
+      --cam-zoom: 0.7;
       position: relative;
       width: 100%; height: 100%;
       max-width: min(100%, calc(100vh - 80px));
@@ -301,11 +302,14 @@
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: cover;
-      /* Rear camera is NOT mirrored */
+      /* 거치 높이에 맞춰 0.7배로 고정 */
       background: #0a0a0a;
-      transform: scale(var(--cam-zoom, 1));
+      transform: scale(var(--cam-zoom));
       transform-origin: center;
-      transition: transform 320ms ease;
+    }
+    /* iPad Safari 후면 카메라가 거치 방향과 다르게 표시되는 현상 보정 */
+    .ipad-camera-rotated .camera-video {
+      transform: rotate(90deg) scale(var(--cam-zoom));
     }
 
     /* Idle illustration — when camera not started yet */
@@ -450,42 +454,6 @@
       color: rgba(255,255,255,0.5);
       font-weight: 500;
       white-space: nowrap;
-    }
-
-    /* Scan zoom corner buttons */
-    .zoom-controls {
-      position: absolute;
-      top: clamp(14px, 2vh, 22px);
-      right: clamp(14px, 2vw, 22px);
-      display: flex; gap: 6px;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px;
-      padding: 4px;
-      z-index: 6;
-      opacity: 0;
-      transition: opacity 200ms ease;
-    }
-    .kiosk[data-state="ready"] .zoom-controls,
-    .kiosk[data-state="scanning"] .zoom-controls { opacity: 1; }
-    .zoom-btn {
-      appearance: none; border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.85);
-      width: 38px; height: 38px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
-      transition: background 160ms ease;
-    }
-    .zoom-btn:hover { background: rgba(255,255,255,0.1); }
-    .zoom-btn[aria-pressed="true"] {
-      background: #fff;
-      color: #0a0a0a;
     }
 
     /* ============== STATE-DRIVEN STYLING ============== */
@@ -706,13 +674,6 @@
     <!-- ============ RIGHT PANEL: SCANNER ============ -->
     <section class="scanner" aria-label="QR 스캐너">
 
-      <!-- Zoom controls (rear-cam needs less zoom) -->
-      <div class="zoom-controls" role="radiogroup" aria-label="카메라 확대 비율">
-        <button class="zoom-btn" type="button" role="radio" data-zoom="0.7"  aria-pressed="false">0.7×</button>
-        <button class="zoom-btn" type="button" role="radio" data-zoom="1"    aria-pressed="true">1×</button>
-        <button class="zoom-btn" type="button" role="radio" data-zoom="1.3"  aria-pressed="false">1.3×</button>
-      </div>
-
       <div class="camera-frame" id="cameraFrame">
         <video class="camera-video" id="camera" autoplay playsinline muted></video>
         <div class="camera-vignette"></div>
@@ -791,6 +752,10 @@
   (function () {
     'use strict';
 
+    const isIPad = /iPad/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIPad) document.documentElement.classList.add('ipad-camera-rotated');
+
     const $ = id => document.getElementById(id);
     const kiosk        = $('kiosk');
     const video        = $('camera');
@@ -807,7 +772,6 @@
     const syncStatus   = $('syncStatus');
     const clockEl      = $('clock');
     const selectedCountEl = $('selectedCount');
-    const cameraFrame  = $('cameraFrame');
 
     const STATE = {
       IDLE: 'idle', READY: 'ready', SCANNING: 'scanning',
@@ -844,7 +808,6 @@
     let resetTimer = null;
     let busy = false;
     let selectedCount = 1;
-    let zoom = 1;
     let lastScanAt = 0;
     let blockUntil = 0;
     let cooldownTimer = null;
@@ -964,24 +927,6 @@
       };
       btn.addEventListener('pointerdown', e => { e.preventDefault(); apply(); });
       btn.addEventListener('click', apply);
-    });
-
-    /* ============ ZOOM CONTROL ============ */
-    document.querySelectorAll('.zoom-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        zoom = parseFloat(btn.dataset.zoom);
-        document.querySelectorAll('.zoom-btn').forEach(b =>
-          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
-        cameraFrame.style.setProperty('--cam-zoom', String(zoom));
-        if (stream) {
-          const track = stream.getVideoTracks()[0];
-          const caps = track && track.getCapabilities ? track.getCapabilities() : null;
-          if (caps && caps.zoom) {
-            const target = Math.min(caps.zoom.max, Math.max(caps.zoom.min, zoom));
-            track.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
-          }
-        }
-      });
     });
 
     /* ============ STATE TRANSITIONS ============ */
