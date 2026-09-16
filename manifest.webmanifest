@@ -1,0 +1,14 @@
+{
+  "id": "/scanner-test.html",
+  "name": "HYFL 입학설명회 QR 체크인",
+  "short_name": "HYFL 체크인",
+  "description": "한영외국어고등학교 입학설명회 QR 체크인",
+  "lang": "ko",
+  "start_url": "/scanner-test.html",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#f3f7f5",
+  "theme_color": "#087d62"
+}
