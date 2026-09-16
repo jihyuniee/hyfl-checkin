@@ -3,263 +3,271 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#087d62">
   <title>HYFL 입학설명회 QR 체크인</title>
   <style>
     :root{
-      --navy:#07111f;
-      --navy2:#0c1b2d;
-      --panel:#10243a;
-      --line:rgba(255,255,255,.13);
-      --text:#f8fbff;
-      --muted:#a9b8ca;
-      --pink:#ff316e;
-      --blue:#70b4ff;
-      --green:#13ad5b;
-      --red:#d94357;
+      --green:#087d62;
+      --green2:#0a9a74;
+      --green-soft:#e9f6f1;
+      --ink:#14251f;
+      --muted:#708079;
+      --line:#dce7e2;
+      --paper:#f3f7f5;
+      --white:#fff;
+      --success:#13ad5b;
+      --error:#d94357;
     }
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;height:100%;overflow:hidden}
     body{
-      color:var(--text);
-      background:var(--navy);
+      background:var(--paper);
+      color:var(--ink);
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       user-select:none;
       -webkit-tap-highlight-color:transparent;
     }
     button{font:inherit}
-    .topbar{
-      height:82px;
-      padding:0 38px;
+    .shell{
+      position:relative;
+      width:100%;
+      height:100%;
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom:1px solid var(--line);
-      background:rgba(5,14,25,.96);
+      flex-direction:column;
+      overflow:hidden;
+      background:var(--paper);
     }
-    .school{font-size:23px;font-weight:950;letter-spacing:-.035em}
-    .event{margin-top:4px;color:var(--muted);font-size:13px;font-weight:700}
-    .checkin-label{
+    .hero{
+      position:relative;
+      min-height:174px;
+      padding:27px 28px 25px;
+      overflow:hidden;
+      color:#fff;
+      background:linear-gradient(135deg,#066f58 0%,#0b9771 100%);
+    }
+    .hero:before,.hero:after{
+      content:'';
+      position:absolute;
+      border-radius:28px;
+      background:rgba(255,255,255,.09);
+      transform:rotate(28deg);
+    }
+    .hero:before{width:125px;height:125px;right:-22px;top:-43px}
+    .hero:after{width:82px;height:82px;right:90px;bottom:-47px}
+    .hero-top{
+      position:relative;
+      z-index:1;
       display:flex;
-      align-items:center;
-      gap:10px;
-      color:#d9e5f2;
-      font-size:13px;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:15px;
+    }
+    .school{font-size:19px;font-weight:950;letter-spacing:-.035em}
+    .event{margin-top:4px;color:rgba(255,255,255,.76);font-size:12px;font-weight:750}
+    .hero h1{
+      position:relative;
+      z-index:1;
+      margin:28px 0 0;
+      font-size:34px;
+      line-height:1.12;
+      letter-spacing:-.055em;
+    }
+    .hero h1 small{
+      display:block;
+      margin-bottom:7px;
+      color:#bdf3df;
+      font-size:12px;
       font-weight:900;
       letter-spacing:.16em;
     }
-    .checkin-label:before{
-      content:'';
-      width:9px;
-      height:9px;
-      border-radius:50%;
-      background:#42e493;
-      box-shadow:0 0 15px #42e493;
-    }
     .top-actions{
-      display:flex;
-      align-items:center;
-      gap:11px;
-    }
-    .live-total{
-      height:48px;
-      padding:0 16px;
+      position:relative;
+      z-index:2;
       display:flex;
       align-items:center;
       gap:8px;
-      border:1px solid rgba(66,228,147,.3);
-      border-radius:15px;
-      background:rgba(66,228,147,.08);
     }
-    .live-total span{
-      color:#a9b8ca;
-      font-size:12px;
-      font-weight:800;
-    }
-    .live-total strong{
-      color:#77efac;
-      font-size:25px;
-      line-height:1;
-      letter-spacing:-.04em;
-    }
-    .live-total em{
-      color:#d8e7df;
-      font-size:13px;
-      font-style:normal;
-      font-weight:850;
-    }
-    .dashboard-link{
-      height:48px;
-      padding:0 17px;
-      display:inline-flex;
+    .live-total{
+      height:43px;
+      padding:0 12px;
+      display:flex;
       align-items:center;
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:15px;
-      background:rgba(255,255,255,.06);
+      gap:6px;
+      border:1px solid rgba(255,255,255,.24);
+      border-radius:13px;
+      background:rgba(0,0,0,.10);
+      backdrop-filter:blur(7px);
+    }
+    .live-total span{font-size:10px;font-weight:800;color:rgba(255,255,255,.73)}
+    .live-total strong{font-size:22px;line-height:1}
+    .live-total em{font-size:11px;font-style:normal;font-weight:800}
+    .dashboard-link{
+      width:43px;
+      height:43px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(255,255,255,.24);
+      border-radius:13px;
+      background:rgba(0,0,0,.10);
       color:#fff;
       text-decoration:none;
-      font-size:13px;
-      font-weight:900;
-      white-space:nowrap;
+      font-size:18px;
+      font-weight:950;
     }
-    .dashboard-link:active{background:rgba(255,255,255,.13)}
-    .screen{
-      height:calc(100vh - 82px);
-      display:grid;
-      grid-template-columns:58% 42%;
-    }
-    .count-zone{
-      min-width:0;
-      padding:38px 48px 36px;
+    .content{
+      flex:1;
+      min-height:0;
+      padding:21px 23px 22px;
       display:flex;
       flex-direction:column;
-      justify-content:center;
-      background:
-        radial-gradient(circle at 12% 10%,rgba(55,113,176,.18),transparent 38%),
-        linear-gradient(145deg,#0b1b2d,#07111f);
+      gap:18px;
     }
-    .scan-zone{
-      min-width:0;
-      padding:38px;
+    .section-label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--green);
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.11em;
+    }
+    .section-label b{
+      width:25px;
+      height:25px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:var(--green);
+      color:#fff;
+      font-size:11px;
+      letter-spacing:0;
+    }
+    .people h2{
+      margin:10px 0 15px;
+      font-size:28px;
+      line-height:1.16;
+      letter-spacing:-.055em;
+    }
+    .counts{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:9px;
+    }
+    .count{
+      height:65px;
+      border:1.5px solid var(--line);
+      border-radius:15px;
+      background:#fff;
+      color:#20322b;
+      font-size:21px;
+      font-weight:950;
+      box-shadow:0 5px 15px rgba(29,76,59,.045);
+      touch-action:manipulation;
+      transition:.15s ease;
+    }
+    .count:active{transform:scale(.975)}
+    .count[aria-pressed="true"]{
+      border-color:var(--green);
+      background:var(--green);
+      color:#fff;
+      box-shadow:0 9px 20px rgba(8,125,98,.22);
+    }
+    .selected{
+      height:47px;
+      margin-top:10px;
+      padding:0 15px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-radius:13px;
+      background:var(--green-soft);
+      color:#567068;
+      font-size:13px;
+      font-weight:800;
+    }
+    .selected strong{color:var(--green);font-size:20px}
+    .scan-card{
+      flex:1;
+      min-height:280px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:21px;
+      background:#fff;
+      box-shadow:0 16px 38px rgba(30,70,55,.09);
+    }
+    .scan-bar{
+      height:38px;
+      display:grid;
+      place-items:center;
+      flex:none;
+      background:var(--green2);
+      color:#fff;
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.18em;
+    }
+    .scan-body{
+      flex:1;
+      min-height:0;
+      padding:20px 24px 22px;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
       text-align:center;
-      border-left:1px solid var(--line);
-      background:
-        radial-gradient(circle at 50% 35%,rgba(83,158,235,.20),transparent 42%),
-        linear-gradient(160deg,#102944,#09182a);
     }
-    .step{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:#c9d7e6;
-      font-size:15px;
-      font-weight:900;
-      letter-spacing:.01em;
-    }
-    .step b{
-      width:34px;
-      height:34px;
+    .scan-graphic{
+      position:relative;
+      width:106px;
+      height:106px;
       display:grid;
       place-items:center;
-      border-radius:50%;
-      background:var(--pink);
-      color:#fff;
-      font-size:14px;
+      border-radius:26px;
+      background:var(--green-soft);
     }
-    .count-zone h1{
-      margin:17px 0 27px;
-      font-size:clamp(43px,5.4vw,68px);
-      line-height:1.12;
-      letter-spacing:-.06em;
-    }
-    .counts{
-      width:100%;
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:13px;
-    }
-    .count{
-      height:100px;
-      border:2px solid rgba(255,255,255,.15);
-      border-radius:21px;
-      background:rgba(255,255,255,.055);
-      color:#fff;
-      font-size:34px;
-      font-weight:950;
-      cursor:pointer;
-      touch-action:manipulation;
-      transition:background .16s,border-color .16s,color .16s,transform .16s;
-    }
-    .count:active{transform:scale(.975)}
-    .count[aria-pressed="true"]{
-      border-color:#fff;
-      background:#fff;
-      color:#07111f;
-      box-shadow:0 15px 34px rgba(0,0,0,.24);
-    }
-    .selected{
-      height:68px;
-      margin-top:16px;
-      padding:0 22px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:rgba(255,255,255,.045);
-      color:var(--muted);
-      font-size:16px;
-      font-weight:800;
-    }
-    .selected strong{
-      color:#fff;
-      font-size:29px;
-      letter-spacing:-.04em;
-    }
-    .scan-zone .step{align-self:center}
-    .scan-zone .step b{background:#3e93ea}
-    .qr-frame{
-      position:relative;
-      width:190px;
-      height:190px;
-      margin:28px 0 25px;
-      padding:25px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.34);
-      border-radius:33px;
-      background:rgba(255,255,255,.96);
-      box-shadow:
-        0 0 0 12px rgba(255,255,255,.055),
-        0 25px 60px rgba(0,0,0,.31);
-    }
-    .qr{
-      width:100%;
-      height:100%;
-      background:
-        linear-gradient(90deg,#07111f 14%,transparent 14% 27%,#07111f 27% 41%,transparent 41% 55%,#07111f 55% 69%,transparent 69% 82%,#07111f 82%),
-        linear-gradient(#07111f 14%,transparent 14% 27%,#07111f 27% 41%,transparent 41% 55%,#07111f 55% 69%,transparent 69% 82%,#07111f 82%);
-      background-color:#fff;
-    }
-    .scan-line{
+    .scan-graphic svg{width:72px;height:72px}
+    .scan-pulse{
       position:absolute;
-      left:17px;
-      right:17px;
-      top:18px;
-      height:4px;
-      border-radius:99px;
-      background:var(--pink);
-      box-shadow:0 0 16px var(--pink);
-      animation:scan 2.2s ease-in-out infinite;
+      inset:-7px;
+      border:2px solid rgba(10,154,116,.22);
+      border-radius:31px;
+      animation:pulse 1.8s ease-out infinite;
     }
-    @keyframes scan{
-      0%,100%{transform:translateY(0)}
-      50%{transform:translateY(150px)}
+    @keyframes pulse{
+      0%{transform:scale(.92);opacity:0}
+      35%{opacity:1}
+      100%{transform:scale(1.12);opacity:0}
     }
-    .scan-zone h2{
-      margin:0;
-      font-size:clamp(34px,4.2vw,53px);
-      line-height:1.1;
+    .scan-body h2{
+      margin:20px 0 8px;
+      font-size:26px;
+      line-height:1.15;
       letter-spacing:-.055em;
     }
-    .scan-zone p{
-      margin:14px 0 0;
+    .scan-body p{
+      margin:0;
       color:var(--muted);
-      font-size:17px;
+      font-size:13px;
       line-height:1.55;
     }
-    .auto{
-      margin-top:24px;
-      padding:10px 16px;
-      border:1px solid rgba(112,180,255,.3);
-      border-radius:999px;
-      background:rgba(78,154,232,.10);
-      color:#bcdcff;
-      font-size:13px;
-      font-weight:850;
+    .ready{
+      margin-top:16px;
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      color:var(--green);
+      font-size:12px;
+      font-weight:900;
+    }
+    .ready:before{
+      content:'';
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#25c98b;
+      box-shadow:0 0 10px #25c98b;
     }
     #scanInput{
       position:fixed;
@@ -278,120 +286,140 @@
       display:none;
       align-items:center;
       justify-content:center;
+      padding:30px;
       text-align:center;
       color:#fff;
     }
     .overlay.show{display:flex}
-    .success{background:var(--green)}
-    .failure{background:var(--red)}
+    .success{background:var(--success)}
+    .failure{background:var(--error)}
     .mark{
-      width:150px;
-      height:150px;
-      margin:0 auto 27px;
+      width:138px;
+      height:138px;
+      margin:0 auto 25px;
       display:grid;
       place-items:center;
-      border:9px solid rgba(255,255,255,.95);
+      border:8px solid rgba(255,255,255,.95);
       border-radius:50%;
-      font-size:91px;
+      font-size:83px;
       font-weight:750;
       line-height:1;
     }
     .overlay h2{
       margin:0;
-      font-size:clamp(52px,7vw,84px);
-      line-height:1.06;
+      font-size:54px;
+      line-height:1.07;
       letter-spacing:-.065em;
     }
     .overlay p{
-      margin:15px 0 0;
-      font-size:clamp(22px,3vw,31px);
+      margin:14px 0 0;
+      font-size:21px;
       font-weight:750;
     }
     .people-pill{
       display:inline-block;
-      margin-top:25px;
-      padding:12px 25px;
+      margin-top:23px;
+      padding:11px 23px;
       border-radius:999px;
       background:rgba(255,255,255,.21);
-      font-size:24px;
+      font-size:21px;
       font-weight:950;
     }
-    @media(max-width:900px){
-      .topbar{height:72px;padding:0 24px}
-      .screen{height:calc(100vh - 72px);grid-template-columns:60% 40%}
-      .count-zone{padding:28px}
-      .scan-zone{padding:25px}
-      .count-zone h1{font-size:42px;margin:12px 0 19px}
-      .count{height:80px;font-size:28px}
-      .selected{height:58px}
-      .qr-frame{width:145px;height:145px;padding:19px;margin:19px 0}
-      @keyframes scan{
-        0%,100%{transform:translateY(0)}
-        50%{transform:translateY(110px)}
+    @media(orientation:landscape) and (min-width:800px){
+      .hero{min-height:118px;padding:20px 31px}
+      .hero h1{margin-top:15px;font-size:27px}
+      .content{
+        display:grid;
+        grid-template-columns:1.04fr .96fr;
+        align-items:stretch;
+        padding:23px 28px 26px;
       }
-      .scan-zone h2{font-size:34px}
-      .scan-zone p{font-size:15px}
+      .people{
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        padding:5px 7px;
+      }
+      .people h2{font-size:36px;margin:13px 0 20px}
+      .count{height:82px;font-size:27px}
+      .selected{height:58px;margin-top:13px}
+      .scan-card{min-height:0}
+      .scan-body h2{font-size:31px}
     }
-    @media(orientation:portrait){
-      html,body{overflow:auto}
-      .topbar{height:76px}
-      .screen{
-        height:auto;
-        min-height:calc(100vh - 76px);
-        grid-template-columns:1fr;
-      }
-      .count-zone{min-height:58vh}
-      .scan-zone{min-height:42vh;border-left:0;border-top:1px solid var(--line)}
+    @media(max-height:780px) and (orientation:portrait){
+      .hero{min-height:143px;padding:21px 24px}
+      .hero h1{margin-top:19px;font-size:29px}
+      .content{padding:15px 19px;gap:12px}
+      .people h2{font-size:24px;margin:7px 0 10px}
+      .count{height:54px;font-size:19px}
+      .selected{height:41px;margin-top:7px}
+      .scan-card{min-height:225px}
+      .scan-body{padding:13px 20px}
+      .scan-graphic{width:83px;height:83px}
+      .scan-graphic svg{width:56px;height:56px}
+      .scan-body h2{margin-top:13px;font-size:23px}
+      .ready{margin-top:10px}
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <div class="school">한영외국어고등학교</div>
-      <div class="event">2027학년도 2차 입학설명회</div>
+  <main class="shell">
+    <header class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="school">한영외국어고등학교</div>
+          <div class="event">2027학년도 입학설명회</div>
+        </div>
+        <div class="top-actions">
+          <div class="live-total">
+            <span>현재 입장</span>
+            <strong id="totalPeople">-</strong>
+            <em>명</em>
+          </div>
+          <a class="dashboard-link" href="dashboard.html" target="_blank" rel="noopener" aria-label="실시간 현황">↗</a>
+        </div>
+      </div>
+      <h1><small>WELCOME TO HYFL</small>입학설명회 QR 체크인</h1>
+    </header>
+
+    <div class="content">
+      <section class="people">
+        <div class="section-label"><b>1</b>입장 인원 선택</div>
+        <h2>함께 입장하는 분은<br>몇 명인가요?</h2>
+
+        <div class="counts">
+          <button class="count" data-n="1" aria-pressed="true">1명</button>
+          <button class="count" data-n="2" aria-pressed="false">2명</button>
+          <button class="count" data-n="3" aria-pressed="false">3명</button>
+          <button class="count" data-n="4" aria-pressed="false">4명</button>
+          <button class="count" data-n="5" aria-pressed="false">5명</button>
+          <button class="count" data-n="6" aria-pressed="false">6명</button>
+        </div>
+
+        <div class="selected">
+          <span>선택한 입장 인원</span>
+          <strong><span id="selectedCount">1</span>명</strong>
+        </div>
+      </section>
+
+      <section class="scan-card">
+        <div class="scan-bar">QR SCAN</div>
+        <div class="scan-body">
+          <div class="scan-graphic" aria-hidden="true">
+            <div class="scan-pulse"></div>
+            <svg viewBox="0 0 96 96" fill="none">
+              <rect x="21" y="10" width="54" height="76" rx="10" fill="white" stroke="#087d62" stroke-width="4"/>
+              <rect x="31" y="24" width="34" height="34" rx="4" fill="#087d62"/>
+              <path d="M36 29h9v9h-9zM51 29h9v9h-9zM36 44h9v9h-9zM50 43h5v5h-5zM56 49h5v5h-5z" fill="white"/>
+              <rect x="41" y="71" width="14" height="4" rx="2" fill="#087d62"/>
+            </svg>
+          </div>
+          <h2>QR 코드를 인식해 주세요</h2>
+          <p>옆에 놓인 스캐너에<br>휴대폰의 QR 코드를 보여주세요.</p>
+          <div class="ready">스캔 준비 완료</div>
+        </div>
+      </section>
     </div>
-    <div class="top-actions">
-      <div class="checkin-label">QR CHECK-IN</div>
-      <div class="live-total">
-        <span>현재 총 입장</span>
-        <strong id="totalPeople">-</strong>
-        <em>명</em>
-      </div>
-      <a class="dashboard-link" href="dashboard.html" target="_blank" rel="noopener">실시간 현황 →</a>
-    </div>
-  </header>
-
-  <main class="screen">
-    <section class="count-zone">
-      <div class="step"><b>1</b><span>입장 인원 선택</span></div>
-      <h1>함께 입장하는 분은<br>몇 명인가요?</h1>
-
-      <div class="counts">
-        <button class="count" data-n="1" aria-pressed="true">1명</button>
-        <button class="count" data-n="2" aria-pressed="false">2명</button>
-        <button class="count" data-n="3" aria-pressed="false">3명</button>
-        <button class="count" data-n="4" aria-pressed="false">4명</button>
-        <button class="count" data-n="5" aria-pressed="false">5명</button>
-        <button class="count" data-n="6" aria-pressed="false">6명</button>
-      </div>
-
-      <div class="selected">
-        <span>선택한 입장 인원</span>
-        <strong><span id="selectedCount">1</span>명</strong>
-      </div>
-    </section>
-
-    <section class="scan-zone">
-      <div class="step"><b>2</b><span>QR 체크인</span></div>
-      <div class="qr-frame" aria-hidden="true">
-        <div class="qr"></div>
-        <div class="scan-line"></div>
-      </div>
-      <h2>QR을 스캔해 주세요</h2>
-      <p>스캐너에 휴대폰의 QR을 보여주세요.</p>
-      <div class="auto">스캔하면 자동으로 체크인됩니다</div>
-    </section>
   </main>
 
   <input id="scanInput" inputmode="none" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
@@ -413,7 +441,7 @@
     </div>
   </section>
 
-  <script>
+<script>
     (() => {
       'use strict';
 
