@@ -56,6 +56,53 @@
       background:#42e493;
       box-shadow:0 0 15px #42e493;
     }
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:11px;
+    }
+    .live-total{
+      height:48px;
+      padding:0 16px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(66,228,147,.3);
+      border-radius:15px;
+      background:rgba(66,228,147,.08);
+    }
+    .live-total span{
+      color:#a9b8ca;
+      font-size:12px;
+      font-weight:800;
+    }
+    .live-total strong{
+      color:#77efac;
+      font-size:25px;
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+    .live-total em{
+      color:#d8e7df;
+      font-size:13px;
+      font-style:normal;
+      font-weight:850;
+    }
+    .dashboard-link{
+      height:48px;
+      padding:0 17px;
+      display:inline-flex;
+      align-items:center;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:15px;
+      background:rgba(255,255,255,.06);
+      color:#fff;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .dashboard-link:active{background:rgba(255,255,255,.13)}
     .screen{
       height:calc(100vh - 82px);
       display:grid;
@@ -304,7 +351,15 @@
       <div class="school">한영외국어고등학교</div>
       <div class="event">2027학년도 2차 입학설명회</div>
     </div>
-    <div class="checkin-label">QR CHECK-IN</div>
+    <div class="top-actions">
+      <div class="checkin-label">QR CHECK-IN</div>
+      <div class="live-total">
+        <span>현재 총 입장</span>
+        <strong id="totalPeople">-</strong>
+        <em>명</em>
+      </div>
+      <a class="dashboard-link" href="dashboard.html" target="_blank" rel="noopener">실시간 현황 →</a>
+    </div>
   </header>
 
   <main class="screen">
@@ -368,6 +423,7 @@
       const failure = document.getElementById('failure');
       const successPeople = document.getElementById('successPeople');
       const selectedCount = document.getElementById('selectedCount');
+      const totalPeople = document.getElementById('totalPeople');
 
       let selected = 1;
       let busy = false;
@@ -376,6 +432,7 @@
       let lastAt = 0;
       let keyBuffer = '';
       let keyTimer = null;
+      let refreshingTotal = false;
 
       function focusScanner() {
         if (busy) return;
@@ -426,6 +483,27 @@
           } catch (e) {}
         }
         return value;
+      }
+
+      async function refreshTotal() {
+        if (refreshingTotal) return;
+        refreshingTotal = true;
+        try {
+          const response = await fetch(API + '?action=dashboard&_=' + Date.now(), {cache:'no-store'});
+          const data = await response.json();
+          if (!data || !data.ok) throw new Error('dashboard failed');
+          const value = Number(
+            data.totalAttendedPeople ??
+            data.attendedPeople ??
+            data.checkedPeople ??
+            data.checkedRegistrations
+          );
+          if (Number.isFinite(value)) totalPeople.textContent = value.toLocaleString('ko-KR');
+        } catch (error) {
+          totalPeople.textContent = '-';
+        } finally {
+          refreshingTotal = false;
+        }
       }
 
       async function sendScan(token, count, raw) {
@@ -491,6 +569,8 @@
         try {
           await sendScan(token, count, raw);
           showSuccess(count);
+          setTimeout(refreshTotal, 300);
+          setTimeout(refreshTotal, 1000);
         } catch (error) {
           showFailure();
         }
@@ -537,7 +617,11 @@
       });
 
       document.addEventListener('pointerdown', focusScanner);
-      window.addEventListener('load', focusScanner);
+      window.addEventListener('load', () => {
+        focusScanner();
+        refreshTotal();
+      });
+      setInterval(refreshTotal, 3000);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') focusScanner();
       });
