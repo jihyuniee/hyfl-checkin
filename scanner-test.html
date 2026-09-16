@@ -84,7 +84,7 @@
       </section>
     </section>
 
-    <section class="log">
+    <button id="reviewBtn" class="focusBtn" hidden>원본 기록 확인 후 테스트 계속</button><section class="log">
       <h2>최근 테스트 기록</h2>
       <table>
         <thead><tr><th>시각</th><th>모드</th><th>인원</th><th>token</th></tr></thead>
@@ -99,7 +99,7 @@
       const API='https://script.google.com/macros/s/AKfycbzGsYA6RRTntLKntkc61IrT6CU33TXO65LrNt-zwcbucM5njuqKJPU8HDSkHHUzB073/exec';
       const $=id=>document.getElementById(id);
       const input=$('scannerInput'),status=$('status'),sendMode=$('sendMode');
-      let selected=1,timer=null,lastRaw='',lastAtMs=0,refreshing=false,logs=[];
+      let selected=1,timer=null,lastRaw='',lastAtMs=0,refreshing=false,logs=[],sending=false,needsReview=false;
       const fmt=n=>Number(n||0).toLocaleString('ko-KR');
       const nowText=()=>new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
@@ -108,6 +108,7 @@
       function setCount(n){ selected=n; $('selectedCount').textContent=n; document.querySelectorAll('.count').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.n)===n?'true':'false')); focusInput(); }
       document.querySelectorAll('.count').forEach(btn=>btn.addEventListener('click',()=>setCount(Number(btn.dataset.n))));
       $('focusBtn').addEventListener('click',focusInput);
+      $('reviewBtn').onclick=()=>{if(confirm('원본 스캔로그에서 직전 전송의 기록 여부를 확인했습니까? 이미 기록된 QR은 다시 전송하지 마세요.')){needsReview=false;$('reviewBtn').hidden=true;focusInput();}};
       document.addEventListener('click',e=>{ if(!e.target.closest('a')) focusInput(); });
       window.addEventListener('load',focusInput);
       document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') focusInput(); });
@@ -165,16 +166,20 @@
 
       async function sendScan(token,count,raw){
         const payload={scanId:'scanner-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),token,count,raw,deviceId:deviceId(),clientAt:new Date().toISOString(),source:'scanner-test'};
-        const r=await fetch(API,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
-        const d=await r.json();
-        if(!r.ok||!d||!d.ok) throw Error((d&&d.msg)||'save failed');
-        return d;
+        const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+        try{
+          const r=await fetch(API,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload),signal:controller.signal});
+          const d=await r.json();
+          if(!r.ok||!d||d.ok!==true) throw Error((d&&d.msg)||'save failed');
+          return d;
+        }finally{clearTimeout(timeout);}
       }
 
       async function handleRaw(raw){
         raw=String(raw||'').trim();
         const now=Date.now();
-        if(!raw)return;
+        if(!raw||sending)return;
+        if(sendMode.checked&&needsReview){setStatus('원본 스캔로그에서 저장 여부를 먼저 확인해 주세요.','bad');return;}
         if(raw===lastRaw && now-lastAtMs<900)return;
         lastRaw=raw; lastAtMs=now;
 
@@ -192,20 +197,24 @@
           return;
         }
 
+        sending=true;
         setStatus('전송 중입니다.','warn');
         try{
-          await sendScan(token,count,raw);
+          const reply=await sendScan(token,count,raw);
+          if(reply.msg==='deduped'||reply.duplicate===true||reply.already===true){throw Error('deduped');}
           setStatus('체크인 전송 완료: '+count+'명','ok');
           logs.unshift({time,mode:'전송 완료',kind:'sent',count,token});
           renderLog();
           setCount(1);
           refresh(); setTimeout(refresh,500); setTimeout(refresh,1400);
         }catch(e){
-          setStatus('전송 실패: 서버 또는 토큰을 확인해 주세요.','bad');
+          needsReview=true;
+          $('reviewBtn').hidden=false;
+          setStatus('저장 여부 미확인: 원본 스캔로그를 확인한 후 진행해 주세요.','bad');
           logs.unshift({time,mode:'전송 실패',kind:'fail',count,token});
           renderLog();
           focusInput();
-        }
+        }finally{sending=false;}
       }
 
       function consume(){
