@@ -318,6 +318,49 @@
       font-size:24px;
       font-weight:900;
     }
+    /* 현장용 최소 화면: 질문과 인원 선택만 표시 */
+    .kiosk{
+      display:grid;
+      place-items:center;
+      padding:28px;
+    }
+    .left{
+      width:min(900px,100%);
+      min-height:auto;
+      padding:38px 48px 46px;
+      border:1px solid var(--line);
+      border-radius:32px;
+      background:linear-gradient(155deg,rgba(16,43,69,.98),rgba(7,24,40,.98));
+      box-shadow:0 28px 70px rgba(0,0,0,.28);
+      text-align:center;
+    }
+    .left header{margin-bottom:31px}
+    .school{font-size:27px}
+    .event{font-size:15px}
+    .left h1{
+      margin:0 0 30px;
+      font-size:clamp(44px,6vw,70px);
+      line-height:1.12;
+    }
+    .left .counts{
+      width:min(720px,100%);
+      margin:0 auto;
+      grid-template-columns:repeat(3,1fr);
+      gap:15px;
+    }
+    .left .count{
+      height:105px;
+      font-size:36px;
+    }
+    .left .selected{
+      width:min(720px,100%);
+      margin:18px auto 0;
+      justify-content:center;
+      gap:18px;
+      font-size:19px;
+    }
+    .right{display:none}
+
     @media(max-width:800px){
       .kiosk{grid-template-columns:1fr 1.18fr}
       .left{padding:22px}
@@ -346,9 +389,7 @@
         <div class="event">2027학년도 2차 입학설명회</div>
       </header>
 
-      <div class="step"><span>1</span>먼저, 입장 인원을 눌러주세요</div>
       <h1>함께 입장하는 분은<br>몇 명인가요?</h1>
-      <p class="guide">본인을 포함한 전체 인원을 선택해 주세요.</p>
 
       <div class="counts" id="countButtons">
         <button class="count" data-n="1" aria-pressed="true">1명</button>
@@ -360,11 +401,9 @@
       </div>
 
       <div class="selected">
-        <span>현재 선택</span>
-        <span><strong id="selectedCount">1</strong> 명</span>
+        <span>현재</span>
+        <span><strong id="selectedCount">1</strong>명 선택</span>
       </div>
-
-      <div class="note">7명 이상이면 같은 QR로 나누어 스캔해 주세요.</div>
     </section>
 
     <section class="right">
