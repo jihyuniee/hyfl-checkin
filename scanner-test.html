@@ -7,262 +7,212 @@
   <title>HYFL 입학설명회 QR 체크인</title>
   <style>
     :root{
-      --bg:#07111f;
-      --panel:#0e2034;
-      --line:#29405b;
+      --navy:#07111f;
+      --navy2:#0c1b2d;
+      --panel:#10243a;
+      --line:rgba(255,255,255,.13);
       --text:#f8fbff;
-      --muted:#a9b9cc;
-      --accent:#ff2f6d;
-      --blue:#55a7ff;
-      --green:#16ad5b;
-      --red:#db3e52;
+      --muted:#a9b8ca;
+      --pink:#ff316e;
+      --blue:#70b4ff;
+      --green:#13ad5b;
+      --red:#d94357;
     }
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;height:100%;overflow:hidden}
     body{
-      background:radial-gradient(circle at 80% 0,#17345d 0,#07111f 50%);
       color:var(--text);
+      background:var(--navy);
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       user-select:none;
+      -webkit-tap-highlight-color:transparent;
     }
-    .kiosk{
-      width:100%;
-      height:100%;
-      display:grid;
-      grid-template-columns:minmax(390px,42%) 1fr;
-    }
-    .left{
-      padding:30px 34px 26px;
-      background:linear-gradient(180deg,rgba(13,35,57,.98),rgba(7,22,37,.98));
-      border-right:1px solid var(--line);
+    button{font:inherit}
+    .topbar{
+      height:82px;
+      padding:0 38px;
       display:flex;
-      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid var(--line);
+      background:rgba(5,14,25,.96);
     }
-    .school{font-size:24px;font-weight:950;letter-spacing:-.03em}
-    .event{margin-top:5px;color:var(--muted);font-size:14px;font-weight:750}
-    .step{
+    .school{font-size:23px;font-weight:950;letter-spacing:-.035em}
+    .event{margin-top:4px;color:var(--muted);font-size:13px;font-weight:700}
+    .checkin-label{
       display:flex;
       align-items:center;
       gap:10px;
-      margin-top:35px;
-      color:#fff;
-      font-size:18px;
-      font-weight:900;
-    }
-    .step span{
-      width:34px;
-      height:34px;
-      display:grid;
-      place-items:center;
-      border-radius:50%;
-      background:var(--accent);
-      font-size:17px;
-    }
-    h1{
-      margin:14px 0 7px;
-      font-size:clamp(32px,4vw,47px);
-      line-height:1.1;
-      letter-spacing:-.05em;
-    }
-    .guide{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
-    .counts{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:12px;
-      margin-top:25px;
-    }
-    .count{
-      height:88px;
-      border:2px solid var(--line);
-      border-radius:20px;
-      background:#0a1929;
-      color:#fff;
-      font-size:31px;
-      font-weight:950;
-      touch-action:manipulation;
-    }
-    .count[aria-pressed="true"]{
-      border-color:#fff;
-      background:#fff;
-      color:#07111f;
-      box-shadow:0 10px 30px rgba(0,0,0,.22);
-    }
-    .selected{
-      margin-top:16px;
-      padding:17px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:rgba(9,24,40,.75);
-      color:var(--muted);
-      font-size:17px;
-      font-weight:800;
-    }
-    .selected strong{color:#fff;font-size:31px}
-    .note{
-      margin-top:auto;
-      padding-top:18px;
-      border-top:1px solid var(--line);
-      color:var(--muted);
+      color:#d9e5f2;
       font-size:13px;
-      line-height:1.5;
+      font-weight:900;
+      letter-spacing:.16em;
     }
-    .right{
-      padding:34px;
+    .checkin-label:before{
+      content:'';
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:#42e493;
+      box-shadow:0 0 15px #42e493;
+    }
+    .screen{
+      height:calc(100vh - 82px);
       display:grid;
-      place-items:center;
+      grid-template-columns:58% 42%;
     }
-    .scanner-card{
-      width:min(680px,95%);
-      min-height:68vh;
-      padding:42px 36px;
+    .count-zone{
+      min-width:0;
+      padding:38px 48px 36px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      background:
+        radial-gradient(circle at 12% 10%,rgba(55,113,176,.18),transparent 38%),
+        linear-gradient(145deg,#0b1b2d,#07111f);
+    }
+    .scan-zone{
+      min-width:0;
+      padding:38px;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
       text-align:center;
-      border:1px solid rgba(85,167,255,.35);
-      border-radius:34px;
-      background:linear-gradient(155deg,rgba(21,52,85,.9),rgba(9,24,42,.92));
-      box-shadow:0 28px 70px rgba(0,0,0,.25);
-    }
-    .qr-icon{
-      width:190px;
-      height:190px;
-      padding:24px;
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      grid-template-rows:repeat(5,1fr);
-      gap:7px;
-      border-radius:32px;
-      background:#fff;
-      box-shadow:0 0 0 13px rgba(255,255,255,.08),0 25px 55px rgba(0,0,0,.3);
-    }
-    .qr-icon i{background:#07111f;border-radius:3px}
-    .qr-icon i:nth-child(2),
-    .qr-icon i:nth-child(4),
-    .qr-icon i:nth-child(7),
-    .qr-icon i:nth-child(9),
-    .qr-icon i:nth-child(11),
-    .qr-icon i:nth-child(14),
-    .qr-icon i:nth-child(18),
-    .qr-icon i:nth-child(22),
-    .qr-icon i:nth-child(24){background:transparent}
-    .scanner-card h2{
-      margin:42px 0 12px;
-      font-size:clamp(31px,4vw,48px);
-      line-height:1.16;
-      letter-spacing:-.05em;
-    }
-    .scanner-card p{
-      margin:0;
-      color:var(--muted);
-      font-size:18px;
-      line-height:1.6;
-    }
-    .step-two{align-self:flex-start;margin:0 0 4px}
-    .scanner-card h2 em{color:#ff7aa1;font-style:normal}
-    .not-camera{
-      margin-top:5px;
-      padding:10px 17px;
-      border-radius:999px;
-      background:#fff2b8;
-      color:#382b00;
-      font-size:15px;
-      font-weight:950;
-    }
-    .scan-visual{
-      width:270px;
-      margin:25px auto 17px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-    }
-    .phone{
-      width:118px;
-      height:155px;
-      padding:16px;
-      border:7px solid #e9f2ff;
-      border-radius:20px;
-      background:#12243a;
-      box-shadow:0 14px 28px rgba(0,0,0,.28);
-    }
-    .phone:before{
-      content:'';
-      display:block;
-      width:36px;
-      height:5px;
-      margin:-8px auto 15px;
-      border-radius:99px;
-      background:#768ba4;
-    }
-    .phone-qr{
-      height:95px;
-      border:8px solid #fff;
+      border-left:1px solid var(--line);
       background:
-        linear-gradient(90deg,#07111f 13%,transparent 13% 25%,#07111f 25% 38%,transparent 38% 50%,#07111f 50% 63%,transparent 63% 75%,#07111f 75% 88%,transparent 88%),
-        linear-gradient(#07111f 13%,transparent 13% 25%,#07111f 25% 38%,transparent 38% 50%,#07111f 50% 63%,transparent 63% 75%,#07111f 75% 88%,transparent 88%);
-      background-color:#fff;
+        radial-gradient(circle at 50% 35%,rgba(83,158,235,.20),transparent 42%),
+        linear-gradient(160deg,#102944,#09182a);
     }
-    .down{
-      height:66px;
-      color:#ff5f8d;
-      font-size:64px;
-      font-weight:950;
-      line-height:1;
-      animation:point 1s ease-in-out infinite;
-    }
-    @keyframes point{50%{transform:translateY(7px)}}
-    .scanner-device{
-      position:relative;
-      width:210px;
-      height:85px;
-      padding:15px 24px;
-      border:4px solid #8ba2bb;
-      border-radius:21px 21px 30px 30px;
-      background:linear-gradient(#24384e,#101d2b);
-      box-shadow:0 16px 28px rgba(0,0,0,.3);
-    }
-    .scanner-window{
-      width:100%;
-      height:30px;
-      border:3px solid #516d88;
-      border-radius:9px;
-      background:#020609;
-      box-shadow:inset 0 0 14px rgba(85,167,255,.32);
-    }
-    .scanner-light{
-      width:12px;
-      height:12px;
-      margin:7px auto 0;
-      border-radius:50%;
-      background:#36e491;
-      box-shadow:0 0 12px #36e491;
-    }
-    .final-guide{
-      margin-top:25px;
+    .step{
       display:flex;
       align-items:center;
-      gap:12px;
-      padding:15px 20px;
-      border-radius:17px;
-      background:rgba(22,173,91,.18);
-      border:1px solid rgba(75,232,142,.45);
-      color:#c9ffe0;
-      font-size:18px;
+      gap:10px;
+      color:#c9d7e6;
+      font-size:15px;
+      font-weight:900;
+      letter-spacing:.01em;
     }
-    .final-guide span{
+    .step b{
       width:34px;
       height:34px;
       display:grid;
       place-items:center;
-      flex:none;
       border-radius:50%;
-      background:var(--green);
+      background:var(--pink);
       color:#fff;
+      font-size:14px;
+    }
+    .count-zone h1{
+      margin:17px 0 27px;
+      font-size:clamp(43px,5.4vw,68px);
+      line-height:1.12;
+      letter-spacing:-.06em;
+    }
+    .counts{
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:13px;
+    }
+    .count{
+      height:100px;
+      border:2px solid rgba(255,255,255,.15);
+      border-radius:21px;
+      background:rgba(255,255,255,.055);
+      color:#fff;
+      font-size:34px;
       font-weight:950;
+      cursor:pointer;
+      touch-action:manipulation;
+      transition:background .16s,border-color .16s,color .16s,transform .16s;
+    }
+    .count:active{transform:scale(.975)}
+    .count[aria-pressed="true"]{
+      border-color:#fff;
+      background:#fff;
+      color:#07111f;
+      box-shadow:0 15px 34px rgba(0,0,0,.24);
+    }
+    .selected{
+      height:68px;
+      margin-top:16px;
+      padding:0 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.045);
+      color:var(--muted);
+      font-size:16px;
+      font-weight:800;
+    }
+    .selected strong{
+      color:#fff;
+      font-size:29px;
+      letter-spacing:-.04em;
+    }
+    .scan-zone .step{align-self:center}
+    .scan-zone .step b{background:#3e93ea}
+    .qr-frame{
+      position:relative;
+      width:190px;
+      height:190px;
+      margin:28px 0 25px;
+      padding:25px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.34);
+      border-radius:33px;
+      background:rgba(255,255,255,.96);
+      box-shadow:
+        0 0 0 12px rgba(255,255,255,.055),
+        0 25px 60px rgba(0,0,0,.31);
+    }
+    .qr{
+      width:100%;
+      height:100%;
+      background:
+        linear-gradient(90deg,#07111f 14%,transparent 14% 27%,#07111f 27% 41%,transparent 41% 55%,#07111f 55% 69%,transparent 69% 82%,#07111f 82%),
+        linear-gradient(#07111f 14%,transparent 14% 27%,#07111f 27% 41%,transparent 41% 55%,#07111f 55% 69%,transparent 69% 82%,#07111f 82%);
+      background-color:#fff;
+    }
+    .scan-line{
+      position:absolute;
+      left:17px;
+      right:17px;
+      top:18px;
+      height:4px;
+      border-radius:99px;
+      background:var(--pink);
+      box-shadow:0 0 16px var(--pink);
+      animation:scan 2.2s ease-in-out infinite;
+    }
+    @keyframes scan{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(150px)}
+    }
+    .scan-zone h2{
+      margin:0;
+      font-size:clamp(34px,4.2vw,53px);
+      line-height:1.1;
+      letter-spacing:-.055em;
+    }
+    .scan-zone p{
+      margin:14px 0 0;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.55;
+    }
+    .auto{
+      margin-top:24px;
+      padding:10px 16px;
+      border:1px solid rgba(112,180,255,.3);
+      border-radius:999px;
+      background:rgba(78,154,232,.10);
+      color:#bcdcff;
+      font-size:13px;
+      font-weight:850;
     }
     #scanInput{
       position:fixed;
@@ -270,9 +220,9 @@
       bottom:-20px;
       width:1px;
       height:1px;
-      opacity:.001;
-      border:0;
       padding:0;
+      border:0;
+      opacity:.001;
     }
     .overlay{
       position:fixed;
@@ -290,108 +240,79 @@
     .mark{
       width:150px;
       height:150px;
-      margin:0 auto 25px;
+      margin:0 auto 27px;
       display:grid;
       place-items:center;
       border:9px solid rgba(255,255,255,.95);
       border-radius:50%;
-      font-size:94px;
-      font-weight:700;
+      font-size:91px;
+      font-weight:750;
       line-height:1;
     }
     .overlay h2{
       margin:0;
-      font-size:clamp(50px,7vw,82px);
-      letter-spacing:-.055em;
+      font-size:clamp(52px,7vw,84px);
+      line-height:1.06;
+      letter-spacing:-.065em;
     }
     .overlay p{
       margin:15px 0 0;
-      font-size:clamp(21px,3vw,31px);
+      font-size:clamp(22px,3vw,31px);
       font-weight:750;
     }
     .people-pill{
       display:inline-block;
-      margin-top:24px;
-      padding:12px 24px;
+      margin-top:25px;
+      padding:12px 25px;
       border-radius:999px;
-      background:rgba(255,255,255,.2);
+      background:rgba(255,255,255,.21);
       font-size:24px;
-      font-weight:900;
+      font-weight:950;
     }
-    /* 현장용 최소 화면: 질문과 인원 선택만 표시 */
-    .kiosk{
-      display:grid;
-      place-items:center;
-      padding:28px;
-    }
-    .left{
-      width:min(900px,100%);
-      min-height:auto;
-      padding:38px 48px 46px;
-      border:1px solid var(--line);
-      border-radius:32px;
-      background:linear-gradient(155deg,rgba(16,43,69,.98),rgba(7,24,40,.98));
-      box-shadow:0 28px 70px rgba(0,0,0,.28);
-      text-align:center;
-    }
-    .left header{margin-bottom:31px}
-    .school{font-size:27px}
-    .event{font-size:15px}
-    .left h1{
-      margin:0 0 30px;
-      font-size:clamp(44px,6vw,70px);
-      line-height:1.12;
-    }
-    .left .counts{
-      width:min(720px,100%);
-      margin:0 auto;
-      grid-template-columns:repeat(3,1fr);
-      gap:15px;
-    }
-    .left .count{
-      height:105px;
-      font-size:36px;
-    }
-    .left .selected{
-      width:min(720px,100%);
-      margin:18px auto 0;
-      justify-content:center;
-      gap:18px;
-      font-size:19px;
-    }
-    .right{display:none}
-
-    @media(max-width:800px){
-      .kiosk{grid-template-columns:1fr 1.18fr}
-      .left{padding:22px}
-      .counts{gap:8px}
-      .count{height:70px;font-size:31px}
-      .right{padding:20px}
-      .scanner-card{width:100%;min-height:75vh;padding:28px 20px}
-      .qr-icon{width:145px;height:145px;padding:18px;gap:5px}
-      .scanner-card h2{margin-top:30px}
+    @media(max-width:900px){
+      .topbar{height:72px;padding:0 24px}
+      .screen{height:calc(100vh - 72px);grid-template-columns:60% 40%}
+      .count-zone{padding:28px}
+      .scan-zone{padding:25px}
+      .count-zone h1{font-size:42px;margin:12px 0 19px}
+      .count{height:80px;font-size:28px}
+      .selected{height:58px}
+      .qr-frame{width:145px;height:145px;padding:19px;margin:19px 0}
+      @keyframes scan{
+        0%,100%{transform:translateY(0)}
+        50%{transform:translateY(110px)}
+      }
+      .scan-zone h2{font-size:34px}
+      .scan-zone p{font-size:15px}
     }
     @media(orientation:portrait){
       html,body{overflow:auto}
-      .kiosk{height:auto;min-height:100%;grid-template-columns:1fr}
-      .left{min-height:52vh}
-      .right{min-height:48vh;padding:22px}
-      .scanner-card{min-height:42vh}
-      .qr-icon{width:125px;height:125px}
+      .topbar{height:76px}
+      .screen{
+        height:auto;
+        min-height:calc(100vh - 76px);
+        grid-template-columns:1fr;
+      }
+      .count-zone{min-height:58vh}
+      .scan-zone{min-height:42vh;border-left:0;border-top:1px solid var(--line)}
     }
   </style>
 </head>
 <body>
-  <main class="kiosk">
-    <section class="left">
-      <header>
-        <div class="school">한영외국어고등학교</div>
-        <div class="event">2027학년도 2차 입학설명회</div>
-      </header>
+  <header class="topbar">
+    <div>
+      <div class="school">한영외국어고등학교</div>
+      <div class="event">2027학년도 2차 입학설명회</div>
+    </div>
+    <div class="checkin-label">QR CHECK-IN</div>
+  </header>
 
+  <main class="screen">
+    <section class="count-zone">
+      <div class="step"><b>1</b><span>입장 인원 선택</span></div>
       <h1>함께 입장하는 분은<br>몇 명인가요?</h1>
 
-      <div class="counts" id="countButtons">
+      <div class="counts">
         <button class="count" data-n="1" aria-pressed="true">1명</button>
         <button class="count" data-n="2" aria-pressed="false">2명</button>
         <button class="count" data-n="3" aria-pressed="false">3명</button>
@@ -401,11 +322,21 @@
       </div>
 
       <div class="selected">
-        <span>현재</span>
-        <span><strong id="selectedCount">1</strong>명 선택</span>
+        <span>선택한 입장 인원</span>
+        <strong><span id="selectedCount">1</span>명</strong>
       </div>
     </section>
 
+    <section class="scan-zone">
+      <div class="step"><b>2</b><span>QR 체크인</span></div>
+      <div class="qr-frame" aria-hidden="true">
+        <div class="qr"></div>
+        <div class="scan-line"></div>
+      </div>
+      <h2>QR을 스캔해 주세요</h2>
+      <p>스캐너에 휴대폰의 QR을 보여주세요.</p>
+      <div class="auto">스캔하면 자동으로 체크인됩니다</div>
+    </section>
   </main>
 
   <input id="scanInput" inputmode="none" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
@@ -415,15 +346,15 @@
       <div class="mark">✓</div>
       <h2>체크인 완료!</h2>
       <p>확인되었습니다. 바로 입장해 주세요.</p>
-      <div id="successPeople" class="people-pill">1명 입장</div>
+      <div id="successPeople" class="people-pill">1명 체크인</div>
     </div>
   </section>
 
   <section id="failure" class="overlay failure" aria-live="assertive">
     <div>
       <div class="mark">!</div>
-      <h2>다시 확인해 주세요</h2>
-      <p id="failureMessage">QR을 다시 스캔해 주세요.</p>
+      <h2>다시 스캔해 주세요</h2>
+      <p>QR을 확인한 뒤 다시 보여주세요.</p>
     </div>
   </section>
 
@@ -435,7 +366,6 @@
       const input = document.getElementById('scanInput');
       const success = document.getElementById('success');
       const failure = document.getElementById('failure');
-      const failureMessage = document.getElementById('failureMessage');
       const successPeople = document.getElementById('successPeople');
       const selectedCount = document.getElementById('selectedCount');
 
@@ -444,16 +374,16 @@
       let timer = null;
       let lastRaw = '';
       let lastAt = 0;
+      let keyBuffer = '';
+      let keyTimer = null;
 
       function focusScanner() {
         if (busy) return;
-        setTimeout(() => {
-          try {
-            input.focus({preventScroll:true});
-          } catch (e) {
-            input.focus();
-          }
-        }, 40);
+        try {
+          input.focus({preventScroll:true});
+        } catch (e) {
+          input.focus();
+        }
       }
 
       function setCount(value) {
@@ -500,7 +430,7 @@
 
       async function sendScan(token, count, raw) {
         const payload = {
-          scanId: 'scanner-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+          scanId: 'scanner-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
           token,
           count,
           raw,
@@ -510,21 +440,18 @@
         };
 
         const response = await fetch(API, {
-          method: 'POST',
-          mode: 'cors',
-          credentials: 'omit',
-          headers: {'Content-Type':'text/plain;charset=UTF-8'},
-          body: JSON.stringify(payload)
+          method:'POST',
+          mode:'cors',
+          credentials:'omit',
+          headers:{'Content-Type':'text/plain;charset=UTF-8'},
+          body:JSON.stringify(payload)
         });
         const data = await response.json();
-        if (!response.ok || !data || !data.ok) {
-          throw new Error((data && data.msg) || '체크인 처리에 실패했습니다.');
-        }
-        return data;
+        if (!response.ok || !data || !data.ok) throw new Error('save failed');
       }
 
       function showSuccess(count) {
-        successPeople.textContent = count + '명 입장';
+        successPeople.textContent = count + '명 체크인';
         success.classList.add('show');
         setTimeout(() => {
           success.classList.remove('show');
@@ -534,14 +461,13 @@
         }, 1700);
       }
 
-      function showFailure(message) {
-        failureMessage.textContent = message || 'QR을 다시 스캔해 주세요.';
+      function showFailure() {
         failure.classList.add('show');
         setTimeout(() => {
           failure.classList.remove('show');
           busy = false;
           focusScanner();
-        }, 2400);
+        }, 2300);
       }
 
       async function handleRaw(raw) {
@@ -558,7 +484,7 @@
         const count = selected;
 
         if (!token || token.length < 3) {
-          showFailure('QR을 다시 스캔해 주세요.');
+          showFailure();
           return;
         }
 
@@ -566,11 +492,11 @@
           await sendScan(token, count, raw);
           showSuccess(count);
         } catch (error) {
-          showFailure(error && error.message ? error.message : 'QR을 다시 스캔해 주세요.');
+          showFailure();
         }
       }
 
-      function consume() {
+      function consumeInput() {
         clearTimeout(timer);
         const raw = input.value;
         input.value = '';
@@ -580,18 +506,37 @@
       input.addEventListener('keydown', event => {
         if (event.key === 'Enter') {
           event.preventDefault();
-          consume();
+          consumeInput();
         }
       });
 
       input.addEventListener('input', () => {
         clearTimeout(timer);
-        timer = setTimeout(consume, 450);
+        timer = setTimeout(consumeInput, 450);
       });
 
-      document.addEventListener('pointerup', event => {
-        if (!event.target.closest('.overlay')) focusScanner();
+      function consumeKeyBuffer() {
+        clearTimeout(keyTimer);
+        const raw = keyBuffer;
+        keyBuffer = '';
+        handleRaw(raw);
+      }
+
+      document.addEventListener('keydown', event => {
+        if (event.target === input || busy) return;
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          consumeKeyBuffer();
+          return;
+        }
+        if (event.key.length === 1) {
+          keyBuffer += event.key;
+          clearTimeout(keyTimer);
+          keyTimer = setTimeout(consumeKeyBuffer, 450);
+        }
       });
+
+      document.addEventListener('pointerdown', focusScanner);
       window.addEventListener('load', focusScanner);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') focusScanner();
