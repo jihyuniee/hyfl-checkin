@@ -77,7 +77,7 @@
       border-radius:20px;
       background:#0a1929;
       color:#fff;
-      font-size:39px;
+      font-size:31px;
       font-weight:950;
       touch-action:manipulation;
     }
@@ -162,11 +162,107 @@
       font-size:18px;
       line-height:1.6;
     }
-    .arrow{
-      margin-top:27px;
-      color:#8fc5ff;
+    .step-two{align-self:flex-start;margin:0 0 4px}
+    .scanner-card h2 em{color:#ff7aa1;font-style:normal}
+    .not-camera{
+      margin-top:5px;
+      padding:10px 17px;
+      border-radius:999px;
+      background:#fff2b8;
+      color:#382b00;
+      font-size:15px;
+      font-weight:950;
+    }
+    .scan-visual{
+      width:270px;
+      margin:25px auto 17px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    .phone{
+      width:118px;
+      height:155px;
+      padding:16px;
+      border:7px solid #e9f2ff;
+      border-radius:20px;
+      background:#12243a;
+      box-shadow:0 14px 28px rgba(0,0,0,.28);
+    }
+    .phone:before{
+      content:'';
+      display:block;
+      width:36px;
+      height:5px;
+      margin:-8px auto 15px;
+      border-radius:99px;
+      background:#768ba4;
+    }
+    .phone-qr{
+      height:95px;
+      border:8px solid #fff;
+      background:
+        linear-gradient(90deg,#07111f 13%,transparent 13% 25%,#07111f 25% 38%,transparent 38% 50%,#07111f 50% 63%,transparent 63% 75%,#07111f 75% 88%,transparent 88%),
+        linear-gradient(#07111f 13%,transparent 13% 25%,#07111f 25% 38%,transparent 38% 50%,#07111f 50% 63%,transparent 63% 75%,#07111f 75% 88%,transparent 88%);
+      background-color:#fff;
+    }
+    .down{
+      height:66px;
+      color:#ff5f8d;
+      font-size:64px;
+      font-weight:950;
+      line-height:1;
+      animation:point 1s ease-in-out infinite;
+    }
+    @keyframes point{50%{transform:translateY(7px)}}
+    .scanner-device{
+      position:relative;
+      width:210px;
+      height:85px;
+      padding:15px 24px;
+      border:4px solid #8ba2bb;
+      border-radius:21px 21px 30px 30px;
+      background:linear-gradient(#24384e,#101d2b);
+      box-shadow:0 16px 28px rgba(0,0,0,.3);
+    }
+    .scanner-window{
+      width:100%;
+      height:30px;
+      border:3px solid #516d88;
+      border-radius:9px;
+      background:#020609;
+      box-shadow:inset 0 0 14px rgba(85,167,255,.32);
+    }
+    .scanner-light{
+      width:12px;
+      height:12px;
+      margin:7px auto 0;
+      border-radius:50%;
+      background:#36e491;
+      box-shadow:0 0 12px #36e491;
+    }
+    .final-guide{
+      margin-top:25px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:15px 20px;
+      border-radius:17px;
+      background:rgba(22,173,91,.18);
+      border:1px solid rgba(75,232,142,.45);
+      color:#c9ffe0;
       font-size:18px;
-      font-weight:900;
+    }
+    .final-guide span{
+      width:34px;
+      height:34px;
+      display:grid;
+      place-items:center;
+      flex:none;
+      border-radius:50%;
+      background:var(--green);
+      color:#fff;
+      font-weight:950;
     }
     #scanInput{
       position:fixed;
@@ -250,39 +346,44 @@
         <div class="event">2027학년도 2차 입학설명회</div>
       </header>
 
-      <div class="step"><span>1</span>입장 인원 선택</div>
-      <h1>총 몇 분이신가요?</h1>
-      <p class="guide">본인을 포함한 전체 입장 인원을 선택해 주세요.</p>
+      <div class="step"><span>1</span>먼저, 입장 인원을 눌러주세요</div>
+      <h1>함께 입장하는 분은<br>몇 명인가요?</h1>
+      <p class="guide">본인을 포함한 전체 인원을 선택해 주세요.</p>
 
       <div class="counts" id="countButtons">
-        <button class="count" data-n="1" aria-pressed="true">1</button>
-        <button class="count" data-n="2" aria-pressed="false">2</button>
-        <button class="count" data-n="3" aria-pressed="false">3</button>
-        <button class="count" data-n="4" aria-pressed="false">4</button>
-        <button class="count" data-n="5" aria-pressed="false">5</button>
-        <button class="count" data-n="6" aria-pressed="false">6</button>
+        <button class="count" data-n="1" aria-pressed="true">1명</button>
+        <button class="count" data-n="2" aria-pressed="false">2명</button>
+        <button class="count" data-n="3" aria-pressed="false">3명</button>
+        <button class="count" data-n="4" aria-pressed="false">4명</button>
+        <button class="count" data-n="5" aria-pressed="false">5명</button>
+        <button class="count" data-n="6" aria-pressed="false">6명</button>
       </div>
 
       <div class="selected">
-        <span>선택한 입장 인원</span>
+        <span>현재 선택</span>
         <span><strong id="selectedCount">1</strong> 명</span>
       </div>
 
-      <div class="note">7명 이상은 같은 QR로 나누어 스캔해 주세요.</div>
+      <div class="note">7명 이상이면 같은 QR로 나누어 스캔해 주세요.</div>
     </section>
 
     <section class="right">
       <div class="scanner-card">
-        <div class="qr-icon" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i>
+        <div class="step step-two"><span>2</span>휴대폰 QR 스캔</div>
+        <h2>휴대폰의 QR을<br><em>화면 앞 스캐너</em>에 보여주세요</h2>
+        <div class="not-camera">iPad 카메라에 보여주는 것이 아닙니다</div>
+
+        <div class="scan-visual" aria-hidden="true">
+          <div class="phone"><div class="phone-qr"></div></div>
+          <div class="down">↓</div>
+          <div class="scanner-device">
+            <div class="scanner-window"></div>
+            <div class="scanner-light"></div>
+          </div>
         </div>
-        <h2>휴대폰 QR을<br>스캐너에 보여주세요</h2>
-        <p>QR을 스캔한 뒤 초록색 완료 화면이 나타나면<br>바로 입장하시면 됩니다.</p>
-        <div class="arrow">↓ 스캐너에 QR 보여주기</div>
+
+        <p>스캐너에서 <strong>삑 소리</strong>가 나면 잠시 기다려 주세요.</p>
+        <div class="final-guide"><span>3</span><strong>초록색 완료 화면이 뜨면 바로 입장!</strong></div>
       </div>
     </section>
   </main>
