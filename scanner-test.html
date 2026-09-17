@@ -443,8 +443,8 @@
   <section id="failure" class="overlay failure" aria-live="assertive">
     <div>
       <div class="mark">!</div>
-      <h2>다시 스캔해 주세요</h2>
-      <p>QR을 확인한 뒤 다시 보여주세요.</p>
+      <h2 id="failureTitle">다시 스캔해 주세요</h2>
+      <p id="failureMessage">QR을 확인한 뒤 다시 보여주세요.</p>
     </div>
   </section>
 
@@ -456,6 +456,8 @@
       const input = document.getElementById('scanInput');
       const success = document.getElementById('success');
       const failure = document.getElementById('failure');
+      const failureTitle = document.getElementById('failureTitle');
+      const failureMessage = document.getElementById('failureMessage');
       const successPeople = document.getElementById('successPeople');
       const selectedCount = document.getElementById('selectedCount');
       const totalPeople = document.getElementById('totalPeople');
@@ -494,6 +496,50 @@
       document.querySelectorAll('.count').forEach(button => {
         button.addEventListener('click', () => setCount(Number(button.dataset.n)));
       });
+
+      // 한글 두벌식 상태에서 HID 스캐너가 입력한 값을 원래 영문 키로 복원한다.
+      function restoreEnglishKeyboard(raw) {
+        const text = String(raw || '');
+        if (!/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text)) return text;
+
+        const compatibilityKeys = {
+          'ㄱ':'r','ㄲ':'R','ㄳ':'rt','ㄴ':'s','ㄵ':'sw','ㄶ':'sg',
+          'ㄷ':'e','ㄸ':'E','ㄹ':'f','ㄺ':'fr','ㄻ':'fa','ㄼ':'fq',
+          'ㄽ':'ft','ㄾ':'fx','ㄿ':'fv','ㅀ':'fg','ㅁ':'a','ㅂ':'q',
+          'ㅃ':'Q','ㅄ':'qt','ㅅ':'t','ㅆ':'T','ㅇ':'d','ㅈ':'w',
+          'ㅉ':'W','ㅊ':'c','ㅋ':'z','ㅌ':'x','ㅍ':'v','ㅎ':'g',
+          'ㅏ':'k','ㅐ':'o','ㅑ':'i','ㅒ':'O','ㅓ':'j','ㅔ':'p',
+          'ㅕ':'u','ㅖ':'P','ㅗ':'h','ㅘ':'hk','ㅙ':'ho','ㅚ':'hl',
+          'ㅛ':'y','ㅜ':'n','ㅝ':'nj','ㅞ':'np','ㅟ':'nl','ㅠ':'b',
+          'ㅡ':'m','ㅢ':'ml','ㅣ':'l'
+        };
+        const initialKeys = ['r','R','s','e','E','f','a','q','Q','t','T','d','w','W','c','z','x','v','g'];
+        const medialKeys = ['k','o','i','O','j','p','u','P','h','hk','ho','hl','y','n','nj','np','nl','b','m','ml','l'];
+        const finalKeys = ['', 'r','R','rt','s','sw','sg','e','f','fr','fa','fq','ft','fx','fv','fg','a','q','qt','t','T','d','w','c','z','x','v','g'];
+
+        let restored = '';
+        for (let i = 0; i < text.length; i += 1) {
+          const ch = text.charAt(i);
+          const code = text.charCodeAt(i);
+
+          if (code >= 0xAC00 && code <= 0xD7A3) {
+            const syllable = code - 0xAC00;
+            const initial = Math.floor(syllable / 588);
+            const medial = Math.floor((syllable % 588) / 28);
+            const final = syllable % 28;
+            restored += initialKeys[initial] + medialKeys[medial] + finalKeys[final];
+          } else {
+            restored += compatibilityKeys[ch] || ch;
+          }
+        }
+        return restored;
+      }
+
+      function scanError(kind, message) {
+        const error = new Error(message || kind);
+        error.kind = kind;
+        return error;
+      }
 
       function extractToken(raw) {
         const text = String(raw || '').trim();
@@ -541,7 +587,7 @@
         }
       }
 
-      async function sendScan(token, count, raw) {
+      async function sendScan(token, count, raw, originalRaw) {
         const payload = {
           scanId: 'scanner-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
           token,
@@ -551,16 +597,36 @@
           clientAt: new Date().toISOString(),
           source: 'scanner-test'
         };
+        if (originalRaw && originalRaw !== raw) payload.rawOriginal = originalRaw;
 
-        const response = await fetch(API, {
-          method:'POST',
-          mode:'cors',
-          credentials:'omit',
-          headers:{'Content-Type':'text/plain;charset=UTF-8'},
-          body:JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (!response.ok || !data || !data.ok) throw new Error('save failed');
+        let response;
+        try {
+          response = await fetch(API, {
+            method:'POST',
+            mode:'cors',
+            credentials:'omit',
+            headers:{'Content-Type':'text/plain;charset=UTF-8'},
+            body:JSON.stringify(payload)
+          });
+        } catch (error) {
+          throw scanError('network', 'request failed');
+        }
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (error) {
+          throw scanError('network', 'invalid response');
+        }
+
+        if (!response.ok) throw scanError('network', 'server unavailable');
+        if (!data || data.ok !== true) {
+          const reason = String(
+            (data && (data.message || data.error || data.code || data.status)) || ''
+          );
+          throw scanError('unregistered', reason || 'unregistered QR');
+        }
+        return data;
       }
 
       function showSuccess(count) {
@@ -574,40 +640,47 @@
         }, 1700);
       }
 
-      function showFailure() {
+      function showFailure(title, message) {
+        failureTitle.textContent = title || '다시 스캔해 주세요';
+        failureMessage.textContent = message || 'QR을 확인한 뒤 다시 보여주세요.';
         failure.classList.add('show');
         setTimeout(() => {
           failure.classList.remove('show');
           busy = false;
           focusScanner();
-        }, 2300);
+        }, 2500);
       }
 
       async function handleRaw(raw) {
-        raw = String(raw || '').trim();
+        const originalRaw = String(raw || '').trim();
+        const normalizedRaw = restoreEnglishKeyboard(originalRaw).trim();
         const now = Date.now();
-        if (!raw || busy) return;
-        if (raw === lastRaw && now - lastAt < 900) return;
+        if (!normalizedRaw || busy) return;
+        if (normalizedRaw === lastRaw && now - lastAt < 900) return;
 
-        lastRaw = raw;
+        lastRaw = normalizedRaw;
         lastAt = now;
         busy = true;
 
-        const token = extractToken(raw);
+        const token = extractToken(normalizedRaw);
         const count = selected;
 
         if (!token || token.length < 3) {
-          showFailure();
+          showFailure('QR 코드를 확인해 주세요', '스캐너에 QR을 다시 보여주세요.');
           return;
         }
 
         try {
-          await sendScan(token, count, raw);
+          await sendScan(token, count, normalizedRaw, originalRaw);
           showSuccess(count);
           setTimeout(refreshTotal, 300);
           setTimeout(refreshTotal, 1000);
         } catch (error) {
-          showFailure();
+          if (error && error.kind === 'unregistered') {
+            showFailure('등록되지 않은 QR입니다', '사전 등록 여부를 확인해 주세요.');
+          } else {
+            showFailure('연결을 확인해 주세요', '잠시 후 다시 스캔해 주세요.');
+          }
         }
       }
 
