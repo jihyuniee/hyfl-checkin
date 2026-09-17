@@ -535,12 +535,6 @@
         return restored;
       }
 
-      function scanError(kind, message) {
-        const error = new Error(message || kind);
-        error.kind = kind;
-        return error;
-      }
-
       function extractToken(raw) {
         const text = String(raw || '').trim();
         try {
@@ -587,7 +581,8 @@
         }
       }
 
-      async function sendScan(token, count, raw, originalRaw) {
+      // 현장 처리 속도를 위해 서버 응답을 기다리지 않고 로그만 전송한다.
+      function sendScanAsync(token, count, raw, originalRaw) {
         const payload = {
           scanId: 'scanner-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
           token,
@@ -599,34 +594,28 @@
         };
         if (originalRaw && originalRaw !== raw) payload.rawOriginal = originalRaw;
 
-        let response;
+        const body = JSON.stringify(payload);
+
         try {
-          response = await fetch(API, {
+          if (navigator.sendBeacon) {
+            const queued = navigator.sendBeacon(
+              API,
+              new Blob([body], {type:'text/plain;charset=UTF-8'})
+            );
+            if (queued) return;
+          }
+        } catch (error) {}
+
+        try {
+          fetch(API, {
             method:'POST',
             mode:'cors',
             credentials:'omit',
+            keepalive:true,
             headers:{'Content-Type':'text/plain;charset=UTF-8'},
-            body:JSON.stringify(payload)
-          });
-        } catch (error) {
-          throw scanError('network', 'request failed');
-        }
-
-        let data;
-        try {
-          data = await response.json();
-        } catch (error) {
-          throw scanError('network', 'invalid response');
-        }
-
-        if (!response.ok) throw scanError('network', 'server unavailable');
-        if (!data || data.ok !== true) {
-          const reason = String(
-            (data && (data.message || data.error || data.code || data.status)) || ''
-          );
-          throw scanError('unregistered', reason || 'unregistered QR');
-        }
-        return data;
+            body
+          }).catch(() => {});
+        } catch (error) {}
       }
 
       function showSuccess(count) {
@@ -651,7 +640,7 @@
         }, 2500);
       }
 
-      async function handleRaw(raw) {
+      function handleRaw(raw) {
         const originalRaw = String(raw || '').trim();
         const normalizedRaw = restoreEnglishKeyboard(originalRaw).trim();
         const now = Date.now();
@@ -670,18 +659,10 @@
           return;
         }
 
-        try {
-          await sendScan(token, count, normalizedRaw, originalRaw);
-          showSuccess(count);
-          setTimeout(refreshTotal, 300);
-          setTimeout(refreshTotal, 1000);
-        } catch (error) {
-          if (error && error.kind === 'unregistered') {
-            showFailure('등록되지 않은 QR입니다', '사전 등록 여부를 확인해 주세요.');
-          } else {
-            showFailure('연결을 확인해 주세요', '잠시 후 다시 스캔해 주세요.');
-          }
-        }
+        sendScanAsync(token, count, normalizedRaw, originalRaw);
+        showSuccess(count);
+        setTimeout(refreshTotal, 500);
+        setTimeout(refreshTotal, 1500);
       }
 
       function consumeInput() {
